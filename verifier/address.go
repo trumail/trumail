@@ -1,0 +1,34 @@
+package verifier
+
+import (
+	"crypto/md5"
+	"encoding/hex"
+	"net/mail"
+	"strings"
+)
+
+// Address stores all information about an email Address
+type Address struct{ Username, Domain, Address string }
+
+// ParseAddress attempts to parse an email address and return it in the form
+// of an Address struct pointer
+func ParseAddress(email string) (*Address, error) {
+	// Parses the address with the internal go mail address parser
+	a, err := mail.ParseAddress(strings.ToLower(email))
+	if err != nil {
+		return nil, err
+	}
+
+	// Returns the address with the username and domain split out
+	return &Address{
+		Username: strings.Split(a.Address, "@")[0],
+		Domain:   strings.Split(a.Address, "@")[1],
+		Address:  a.Address,
+	}, nil
+}
+
+// MD5 takes a calculation of the md5 Hash and returns a string representation
+func (a *Address) MD5() string {
+	hashBytes := md5.Sum([]byte(a.Address))
+	return hex.EncodeToString(hashBytes[:])
+}

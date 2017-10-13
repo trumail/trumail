@@ -1,0 +1,9 @@
+package: github.com/sdwolfe32/trumail
+import:
+- package: github.com/Sirupsen/logrus
+- package: github.com/gorilla/handlers
+- package: github.com/gorilla/mux
+- package: golang.org/x/sync
+  subpackages:
+  - errgroup
+  - syncmap

@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/sdwolfe32/trumail
+    environment:
+      - DOCKER_TAG: sdwolfe32/trumail
+    docker:
+      - image: circleci/golang:1.9.1
+    steps:
+      - checkout
+      - run:
+          name: Install Glide
+          command: go get github.com/Masterminds/glide
+      - run:
+          name: Download vendored Go dependencies
+          command: glide install
+      - run:
+          name: Build binary for Alpine linux
+          command: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+      - setup_remote_docker
+      - run:
+          name: Build Docker image with binary
+          command: docker build --no-cache -t $DOCKER_TAG .
+      - run:
+          name: Login to DockerHub
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Push image to DockerHub
+          command: docker push $DOCKER_TAG
