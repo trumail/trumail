@@ -19,10 +19,13 @@ func ParseAddress(email string) (*Address, error) {
 		return nil, err
 	}
 
+	// Find the last occurrence of an @ sign
+	index := strings.LastIndex(a.Address, "@")
+
 	// Returns the address with the username and domain split out
 	return &Address{
-		Username: strings.Split(a.Address, "@")[0],
-		Domain:   strings.Split(a.Address, "@")[1],
+		Username: a.Address[:index],
+		Domain:   a.Address[index+1:],
 		Address:  a.Address,
 	}, nil
 }
