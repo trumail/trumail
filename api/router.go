@@ -53,8 +53,8 @@ func (r *router) ListenAndServe(port string) error {
 	// Create the basic HTTP server with base parameters
 	srv := &http.Server{
 		Handler:      r.router,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
 	}
 
 	// Apply CORS headers
