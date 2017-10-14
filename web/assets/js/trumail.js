@@ -1,7 +1,7 @@
 $('.ui.dropdown').dropdown();
 
 $(document).ready(function() {
-    $('#testForm').on('submit', function(e) {
+    $('#test-form').on('submit', function(e) {
         e.preventDefault();
         var format = document.getElementsByName('test-format')[0].value;
         var email = document.getElementsByName('test-email')[0].value;
@@ -11,6 +11,7 @@ $(document).ready(function() {
             return;
         }
 
+        $('#test-button').addClass('loading');
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'https://trumail.io/' + format + '/' + email, true);
         xhr.onload = function(e) {
@@ -26,6 +27,7 @@ $(document).ready(function() {
                 closable: false,
                 transition: 'flip vertical'
             }).modal('show');
+            $('#test-button').removeClass('loading');
         };
         xhr.onerror = function(e) {
             console.error(xhr.statusText);

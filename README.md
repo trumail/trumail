@@ -16,12 +16,6 @@ Using the API is very simple. All that's needed to validate an address is to sen
 trumail.io/{format}/{email}
 ```
 
-## Running with Docker
-
-```
-$ docker run sdwolfe32/trumail
-```
-
 ## Using the library
 
 ```
