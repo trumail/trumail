@@ -11,11 +11,8 @@
     <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css">
     <link rel="stylesheet" href="assets/css/trumail.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.js"></script>
-    <script src="assets/js/vkbeautify.js"></script>
 </head>
 
 <body>
@@ -32,9 +29,16 @@
     </div>
     <div class="mail-pattern">
         <div class="ui container padded">
-            <a href="/">
-                <img class="ui header-logo" src="assets/images/trumail100.png">
-            </a>
+            <div class="ui equal width stackable grid">
+                <div class="column">
+                    <a href="/">
+                        <img class="ui header-logo" src="assets/images/trumail100.png">
+                    </a>
+                </div>
+                <div class="right aligned column">
+                    <a class="github-button" href="https://github.com/sdwolfe32/trumail" data-size="large" data-show-count="true" aria-label="Star sdwolfe32/trumail on GitHub">Star</a>
+                </div>
+            </div>
         </div>
         <div class="ui container padded-bottom">
             <div class="masthead">
@@ -62,9 +66,9 @@
                             </div>
                             <div class="ui compact selection dropdown" tabindex="0">
                                 <select name="test-format">
-                                <option value="json">JSON</option>
-                                <option value="xml">XML</option>
-                            </select>
+                                    <option value="json">JSON</option>
+                                    <option value="xml">XML</option>
+                                </select>
                                 <i class="dropdown icon"></i>
                                 <div class="text">JSON</div>
                                 <div class="menu" tabindex="-1">
@@ -79,19 +83,27 @@
             </div>
         </div>
         <div class="ui container center aligned padded-bottom">
-            Note: The speed of each verification is dependent on the speed of the mail server.<br/>Slow servers will always result in slow verifications.
+            Note: The speed of each verification is dependent on the speed of the mail server.
+            <br/>Slow servers will always result in slow verifications.
         </div>
     </div>
     <div class="dark2">
         <div class="ui container padded">
-            <h2><i class="rocket icon"></i> How to use</h2>
+            <h2>
+                <i class="rocket icon"></i> How to use</h2>
             <p>
-                Using the email verification API endpoint is pretty straightforward. All you need to do is perform a <code>GET</code> request on the main lookup endpoint using the following schema.
+                Using the email verification API endpoint is pretty straightforward. All you need to do is perform a
+                <code>GET</code> request on the main lookup endpoint using the following schema.
                 <div class="ui dark1 inverted segment">
                     <code>trumail.io/{format}/{email}</code>
                 </div>
                 Currently there are two formats supported:
-                <a href="http://en.wikipedia.org/wiki/JSON"><b>json</b></a> and <a href="http://en.wikipedia.org/wiki/XML"><b>xml</b></a>.
+                <a href="http://en.wikipedia.org/wiki/JSON">
+                    <b>json</b>
+                </a> and
+                <a href="http://en.wikipedia.org/wiki/XML">
+                    <b>xml</b>
+                </a>.
             </p>
         </div>
     </div>
@@ -138,7 +150,8 @@
     <div class="ui container padded">
         <div class="ui middle aligned grid stackable">
             <div class="thirteen wide column">
-                This web site and all documentation is licensed under <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons 3.0</a>.
+                This web site and all documentation is licensed under
+                <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons 3.0</a>.
                 <i class="copyright icon"></i>Copyright 2017,
                 <a href="https://swolfe.me/">Steven Wolfe</a>. All Rights Reserved
             </div>
@@ -147,6 +160,10 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
+    <script src="https://buttons.github.io/buttons.js"></script>
+    <script src="assets/js/vkbeautify.js"></script>
     <script src="assets/js/trumail.js"></script>
 </body>
 
