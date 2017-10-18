@@ -44,12 +44,16 @@ docker run -p 8000:8000 -e SOURCE_ADDR=my.email@gmail.com sdwolfe32/trumail
 
 Verifying the deliverability of an email address isn't a very complicated process. In fact, the process Trumail takes to verify an address is really only half that of sending a standard email transmission and is outlined below...
 ```
-telnet mail.abccorp.com 25
-HELO example.com
-MAIL FROM: admin@example.com
-RCPT TO: joe.smith@abccorp.com
+First a TCP connection is formed with the MX server on port 25.
+
+HELO my-domain.com              // We identify ourselves as my-domain.com (set via environment variable)
+MAIL FROM: me@my-domain.com     // Set the FROM address being our own
+RCPT TO: test-email@example.com // Set the recipient and receive a (200, 500, etc..) from the server
+QUIT                            // Cancel the transaction, we have all the info we need
 ```
 As you can see we first form a tcp connection with the mail server on port 25. We then identify ourselves as example.com and set a reply-to email of admin@example.com (both these are configured via the SOURCE_ADDR environment variable). The last, and obviously most important step in this process is the RCPT command. This is where, based on the response from the mail server, we are able to conclude the deliverability of a given email address. A 200 implies a valid inbox and anything else implies either an error with our connection to the mail server, or a problem with the address requested.
+
+The first 3 command steps above process happen [here](https://github.com/sdwolfe32/trumail/blob/master/verifier/deliverabler.go#L53-L73). Deliverability is checked [here](https://github.com/sdwolfe32/trumail/blob/master/verifier/deliverabler.go#L86). Transaction is cancelled (QUIT) and the connection is closed [here](https://github.com/sdwolfe32/trumail/blob/master/verifier/deliverabler.go#L111-L112).
 
 The BSD 3-clause License
 ========================
