@@ -11,5 +11,5 @@ func HasGravatar(a *Address) bool {
 	}
 
 	defer resp.Body.Close()
-	return resp.StatusCode != http.StatusOK
+	return resp.StatusCode == http.StatusOK
 }
