@@ -7,3 +7,6 @@ import:
   subpackages:
   - errgroup
   - syncmap
+testImport:
+- package: gopkg.in/check.v1
+- package: gopkg.in/h2non/gock.v1

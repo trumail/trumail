@@ -1,20 +1,20 @@
-hash: 1c2f5c4bd8553487b72134e4c61f8d59746225b69742d4147c92b60e9b784f55
-updated: 2017-10-13T17:56:20.434462-07:00
+hash: 0dc340227af66cdb5cdc3ddf9f0c9ce5409bc3ee18d4cd74e21a871080c0a5a0
+updated: 2017-10-21T03:38:29.456174599-03:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
   version: a4d79d4487c2430a17d9dc8a1f74d1a6ed6908ca
 - name: github.com/gorilla/mux
-  version: 9bd9ff2d1d2a0660d35050674f2c3112547997af
+  version: 7625a85c14e615274a4ee4bc8654f72310a563e4
 - name: github.com/Sirupsen/logrus
   version: 89742aefa4b206dcf400792f3bd35b542998eb3b
 - name: golang.org/x/crypto
-  version: 9419663f5a44be8b34ca85f08abc5fe1be11f8a3
+  version: edd5e9b0879d13ee6970a50153d85b8fec9f7686
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
-  version: a04bdaca5b32abe1c069418fb7088ae607de5bd0
+  version: cd69bc3fc700721b709c3a59e16e24c67b58f6ff
   subpackages:
   - context
 - name: golang.org/x/sync
@@ -23,8 +23,12 @@ imports:
   - errgroup
   - syncmap
 - name: golang.org/x/sys
-  version: 686000749eaec0b8855b8eef5336cf63899fe51d
+  version: 8dbc5d05d6edcc104950cc299a1ce6641235bc86
   subpackages:
   - unix
   - windows
-testImports: []
+testImports:
+- name: gopkg.in/check.v1
+  version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
+- name: gopkg.in/h2non/gock.v1
+  version: 84d599244901620fb3eb96473eb9e50619f69b47
