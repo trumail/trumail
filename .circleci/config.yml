@@ -15,6 +15,9 @@ jobs:
           name: Download vendored Go dependencies
           command: glide install
       - run:
+          name: Run unit tests
+          command: make test
+      - run:
           name: Build binary for Alpine linux
           command: env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
       - setup_remote_docker
