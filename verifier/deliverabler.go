@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/idna"
 )
 
 var (
@@ -39,8 +41,14 @@ type deliverabler struct {
 
 // NewDeliverabler generates a new Deliverabler
 func NewDeliverabler(domain, host, sourceAddr string) (Deliverabler, error) {
-	// Looks up all MX records
-	records, err := net.LookupMX(domain)
+	// Convert any internationalized domain names to ascii
+	asciiDomain, err := idna.ToASCII(domain)
+	if err != nil {
+		asciiDomain = domain
+	}
+
+	// Lookup all MX records
+	records, err := net.LookupMX(asciiDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -50,19 +58,13 @@ func NewDeliverabler(domain, host, sourceAddr string) (Deliverabler, error) {
 		return nil, errors.New("No MX records found")
 	}
 
-	// Dials the tcp connection
-	conn, err := net.DialTimeout("tcp", records[0].Host+":25", 3*time.Second)
+	// Dial the SMTP server with the provided timeout
+	client, err := dialSMTPTimeout(records[0].Host+":25", 3*time.Second)
 	if err != nil {
 		return nil, err
 	}
 
-	// Connect to the SMTP server
-	client, err := smtp.NewClient(conn, host)
-	if err != nil {
-		return nil, err
-	}
-
-	// Sets the HELO hostname
+	// Sets the HELO/EHLO hostname
 	if err := client.Hello(host); err != nil {
 		return nil, err
 	}
@@ -77,6 +79,28 @@ func NewDeliverabler(domain, host, sourceAddr string) (Deliverabler, error) {
 		host:       host,
 		sourceAddr: sourceAddr,
 	}, nil
+}
+
+// dialSMTPTimeout is a timeout wrapper for smtp.Dial. It attempts to dial an
+// SMTP server and fails with a timeout if the passed timeout is reached while
+// attempting to establish a new connection
+func dialSMTPTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
+	ch := make(chan *smtp.Client, 1) // Channel holding the new smtp.Client
+
+	// Dial the new smtp connection
+	go func() {
+		if client, err := smtp.Dial(addr); err == nil {
+			ch <- client
+		}
+	}()
+
+	// Retrieve the smtp client from our client channel or timeout
+	select {
+	case c := <-ch:
+		return c, nil
+	case <-time.After(timeout):
+		return nil, errors.New("Timeout connecting to mail-exchanger")
+	}
 }
 
 // IsDeliverable takes an email address and performs the operation of adding
