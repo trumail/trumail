@@ -1,6 +1,7 @@
 NOVENDOR_PATH = $$(glide novendor)
+.PHONY: test
 
-glide: 
+glide:
 	rm glide.lock
 	rm glide.yaml
 	rm -r vendor
