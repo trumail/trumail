@@ -96,7 +96,7 @@ func (v *verifier) Verify(emails ...string) []*Lookup {
 	close(jobs)
 
 	// Pull all the results out of the Lookup results channel and returns
-	for w := 1; w <= len(domainQueue); w++ {
+	for w := 1; w <= len(emails); w++ {
 		lookups = append(lookups, <-results)
 	}
 	return lookups
