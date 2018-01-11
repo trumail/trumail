@@ -1,7 +1,9 @@
 package main
 
 import (
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/sdwolfe32/trumail/api"
@@ -9,6 +11,10 @@ import (
 )
 
 func main() {
+	http.DefaultClient = &http.Client{
+		Timeout: time.Duration(config.HTTPClientTimeout) * time.Second,
+	}
+
 	logger := logrus.New() // New Logger
 
 	if strings.Contains(config.Env, "prod") {
