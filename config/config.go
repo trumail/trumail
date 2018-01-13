@@ -27,4 +27,7 @@ var (
 
 	// Env defines the environment where the service is being ran
 	Env = getEnv("ENVIRONMENT", "development")
+
+	// HTTPClientTimeout defines the HTTP client timeout used in requests
+	HTTPClientTimeout, _ = strconv.ParseUint(getEnv("HTTP_CLIENT_TIMEOUT", "5"), 10, 8)
 )
