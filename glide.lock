@@ -1,19 +1,19 @@
 hash: a6006647cda74a71213d6e9e80e8e66eb4b3dda8c2789e0b14ec8ed4debaa55b
-updated: 2018-02-02T16:59:52.8456-07:00
+updated: 2018-02-03T13:57:13.763151-07:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
-- name: github.com/gorilla/handlers
-  version: 90663712d74cb411cbef281bc1e08c19d1a76145
 - name: github.com/gorilla/mux
   version: c0091a029979286890368b4c7b301261e448e242
 - name: github.com/sdwolfe32/slimhttp
-  version: 8d8f3c8c761a53611f305b31a4b038d44581edab
+  version: cfaa5bd617e5a45c714453cdd06e8241a5270a07
 - name: github.com/Sirupsen/logrus
   version: 768a92a02685ee7535069fc1581341b41bab9b72
 - name: golang.org/x/crypto
   version: 1875d0a70c90e57f11972aefd42276df65e895b9
   subpackages:
+  - acme
+  - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
   version: 2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1
