@@ -1,15 +1,14 @@
 package: github.com/sdwolfe32/trumail
 import:
 - package: github.com/Sirupsen/logrus
-- package: github.com/gorilla/handlers
 - package: github.com/gorilla/mux
+- package: github.com/sdwolfe32/slimhttp
 - package: golang.org/x/net
   subpackages:
   - idna
 - package: golang.org/x/sync
   subpackages:
   - errgroup
-  - syncmap
 testImport:
 - package: gopkg.in/check.v1
 - package: gopkg.in/h2non/gock.v1

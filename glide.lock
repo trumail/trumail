@@ -1,20 +1,22 @@
-hash: 0fa83176fa11f5e2c6850c57e5e9213492bbd5fa2af54ae650ce0c13aecac2d6
-updated: 2017-11-18T22:16:22.753062-07:00
+hash: a6006647cda74a71213d6e9e80e8e66eb4b3dda8c2789e0b14ec8ed4debaa55b
+updated: 2018-02-02T16:59:52.8456-07:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
   version: 90663712d74cb411cbef281bc1e08c19d1a76145
 - name: github.com/gorilla/mux
-  version: 2d5fef06b891c971b14aa6f71ca5ab6c03a36e0e
+  version: c0091a029979286890368b4c7b301261e448e242
+- name: github.com/sdwolfe32/slimhttp
+  version: 8d8f3c8c761a53611f305b31a4b038d44581edab
 - name: github.com/Sirupsen/logrus
-  version: 95cd2b9c79aa5e72ab0bc69b7ccc2be15bf850f6
+  version: 768a92a02685ee7535069fc1581341b41bab9b72
 - name: golang.org/x/crypto
-  version: 9f005a07e0d31d45e6656d241bb5c0f2efd4bc94
+  version: 1875d0a70c90e57f11972aefd42276df65e895b9
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
-  version: 9dfe39835686865bff950a07b394c12a98ddc811
+  version: 2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1
   subpackages:
   - context
   - idna
@@ -22,14 +24,13 @@ imports:
   version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
   subpackages:
   - errgroup
-  - syncmap
 - name: golang.org/x/sys
-  version: 0ac51a24ef1c37380f98ba8b98f56e3bffd59850
+  version: 37707fdb30a5b38865cfb95e5aab41707daec7fd
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: 88f656faf3f37f690df1a32515b479415e1a6769
+  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
   subpackages:
   - secure/bidirule
   - transform
@@ -39,4 +40,4 @@ testImports:
 - name: gopkg.in/check.v1
   version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
 - name: gopkg.in/h2non/gock.v1
-  version: 84d599244901620fb3eb96473eb9e50619f69b47
+  version: 26775f23aa9da4cbd47bc2600a57ac07bbf3bd20

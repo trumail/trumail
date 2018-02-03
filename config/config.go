@@ -5,13 +5,6 @@ import (
 	"strconv"
 )
 
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
 var (
 	// RateLimit defines if the response on router should be throttled
 	RateLimit, _ = strconv.ParseBool(getEnv("RATE_LIMIT", "false"))
@@ -31,3 +24,12 @@ var (
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
 	HTTPClientTimeout, _ = strconv.ParseUint(getEnv("HTTP_CLIENT_TIMEOUT", "5"), 10, 8)
 )
+
+// getEnv retrieves variables from the environment and falls back
+// to a passed fallback variable if it isn't already set
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
