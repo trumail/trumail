@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/sdwolfe32/slimhttp"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {

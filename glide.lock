@@ -1,13 +1,13 @@
-hash: a6006647cda74a71213d6e9e80e8e66eb4b3dda8c2789e0b14ec8ed4debaa55b
-updated: 2018-02-03T13:57:13.763151-07:00
+hash: c5806ca4581b24b6dc2fcc95681b40c9d1f5366624ff05ff6ac5dbbd86a4f1a8
+updated: 2018-02-03T22:11:59.904876-07:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: c0091a029979286890368b4c7b301261e448e242
 - name: github.com/sdwolfe32/slimhttp
-  version: cfaa5bd617e5a45c714453cdd06e8241a5270a07
-- name: github.com/Sirupsen/logrus
+  version: 64aa00fe85deb805b214f66ee617439245d7a6ab
+- name: github.com/sirupsen/logrus
   version: 768a92a02685ee7535069fc1581341b41bab9b72
 - name: golang.org/x/crypto
   version: 1875d0a70c90e57f11972aefd42276df65e895b9

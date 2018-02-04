@@ -3,10 +3,10 @@ package api
 import (
 	"net/http"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/sdwolfe32/slimhttp"
 	"github.com/sdwolfe32/trumail/verifier"
+	"github.com/sirupsen/logrus"
 )
 
 // maxWorkerCount specifies a maximum number of goroutines allowed
