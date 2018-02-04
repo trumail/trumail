@@ -1,12 +1,12 @@
 hash: c5806ca4581b24b6dc2fcc95681b40c9d1f5366624ff05ff6ac5dbbd86a4f1a8
-updated: 2018-02-03T22:11:59.904876-07:00
+updated: 2018-02-04T14:56:12.111324-07:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/mux
   version: c0091a029979286890368b4c7b301261e448e242
 - name: github.com/sdwolfe32/slimhttp
-  version: 64aa00fe85deb805b214f66ee617439245d7a6ab
+  version: 59bce11eefaa75f0255fa58d735295b50006a91e
 - name: github.com/sirupsen/logrus
   version: 768a92a02685ee7535069fc1581341b41bab9b72
 - name: golang.org/x/crypto
