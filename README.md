@@ -16,7 +16,7 @@ trumail.io/{format}/{email}
 
 ## Using the library
 
-```
+```go
 package main
 
 import (
