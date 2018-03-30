@@ -6,20 +6,14 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/sdwolfe32/slimhttp"
+	"github.com/labstack/echo"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	// Set default http timeout
-	http.DefaultClient = &http.Client{
-		Timeout: time.Duration(config.HTTPClientTimeout) * time.Second,
-	}
-
 	// Generate a new logrus logger
 	logger := logrus.New()
 	logger.Level = logrus.DebugLevel
@@ -34,25 +28,23 @@ func main() {
 	// Define all required dependencies
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
-	r := slimhttp.NewRouter()
-	s := api.NewTrumailService(logger, hostname, config.SourceAddr)
-	h := slimhttp.NewHealthcheckService(logger, hostname)
+	e := echo.New()
+	s := api.NewTrumailAPI(logger, hostname, config.SourceAddr)
 
 	// Bind endpoints to router
-	l.Info("Binding all endpoints to the router")
-	r.HandleJSONEndpoint("/json/{email}", s.Lookup).Methods(http.MethodGet)
-	r.HandleXMLEndpoint("/xml/{email}", s.Lookup).Methods(http.MethodGet)
-	r.HandleJSONEndpoint("/healthcheck", h.Healthcheck).Methods(http.MethodGet)
+	l.Info("Binding API endpoints to the router")
+	e.GET("/:format/:email", s.Lookup)
 
 	if config.ServeWeb {
 		// Set all remaining paths to point to static files (must come after)
 		l.Info("Serving web UI on index")
-		r.HandleStatic("/", "./web")
+		e.Static("/", "web")
+		e.Static("/assets", "web/assets")
 	}
 
 	// Listen and Serve
-	l.Info("Listening and Serving")
-	r.ListenAndServe(config.Port)
+	l.WithField("port", config.Port).Info("Listening and Serving")
+	e.Logger.Fatal(e.Start(":" + config.Port))
 }
 
 // retrievePTR attempts to retrieve the PTR record for the IP

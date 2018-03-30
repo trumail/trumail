@@ -1,36 +1,45 @@
-hash: c5806ca4581b24b6dc2fcc95681b40c9d1f5366624ff05ff6ac5dbbd86a4f1a8
-updated: 2018-02-04T14:56:12.111324-07:00
+hash: 9d1afefb4ea752bff251f7d62b939cf2c71aa2f786ee9badfb041ba6035917d3
+updated: 2018-03-29T13:29:07.340682345-07:00
 imports:
-- name: github.com/gorilla/context
-  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
-- name: github.com/gorilla/mux
-  version: c0091a029979286890368b4c7b301261e448e242
-- name: github.com/sdwolfe32/slimhttp
-  version: 59bce11eefaa75f0255fa58d735295b50006a91e
+- name: github.com/labstack/echo
+  version: 60f88a7a1c4beaf04b6f9254c8d72b45a2ab161e
+- name: github.com/labstack/gommon
+  version: 3bc2d333a4c30531c47051369043bcabd62ff4c0
+  subpackages:
+  - color
+  - log
+- name: github.com/mattn/go-colorable
+  version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
+- name: github.com/mattn/go-isatty
+  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/sirupsen/logrus
-  version: 768a92a02685ee7535069fc1581341b41bab9b72
+  version: 90150a8ed11b6ce285e77e8af2b0109559ce4777
+- name: github.com/valyala/bytebufferpool
+  version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
+- name: github.com/valyala/fasttemplate
+  version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: 1875d0a70c90e57f11972aefd42276df65e895b9
+  version: 88942b9c40a4c9d203b82b3731787b672d6e809b
   subpackages:
   - acme
   - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
-  version: 2fb46b16b8dda405028c50f7c7f0f9dd1fa6bfb1
+  version: 6078986fec03a1dcc236c34816c71b0e05018fda
   subpackages:
   - context
   - idna
 - name: golang.org/x/sync
-  version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
+  version: 1d60e4601c6fd243af51cc01ddf169918a5407ca
   subpackages:
   - errgroup
 - name: golang.org/x/sys
-  version: 37707fdb30a5b38865cfb95e5aab41707daec7fd
+  version: 378d26f46672a356c46195c28f61bdb4c0a781dd
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
+  version: ece95c760240037f89ebcbdd7155ac8cb52e38fa
   subpackages:
   - secure/bidirule
   - transform
@@ -40,4 +49,4 @@ testImports:
 - name: gopkg.in/check.v1
   version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
 - name: gopkg.in/h2non/gock.v1
-  version: 26775f23aa9da4cbd47bc2600a57ac07bbf3bd20
+  version: 550b7ca3aa563b9974e2391274ea55a940d05ca9

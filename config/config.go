@@ -16,7 +16,7 @@ var (
 	ServeWeb, _ = strconv.ParseBool(getEnv("SERVE_WEB", "false"))
 
 	// Port defines the port used by the api server
-	Port, _ = strconv.Atoi(getEnv("PORT", "8000"))
+	Port = getEnv("PORT", "8080")
 
 	// Env defines the environment where the service is being ran
 	Env = getEnv("ENVIRONMENT", "development")

@@ -23,6 +23,7 @@ func configureRequestMock(addressMD5 string, statusCode int) *gock.Response {
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
+	v := Verifier{client: &http.Client{}}
 	address := &Address{
 		Username: "username",
 		Domain:   "domain.com",
@@ -32,10 +33,11 @@ func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
 	configureRequestMock(address.MD5(), http.StatusOK)
 	defer gock.Off()
 
-	c.Assert(HasGravatar(address), check.Equals, true)
+	c.Assert(v.HasGravatar(address), check.Equals, true)
 }
 
 func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
+	v := Verifier{client: &http.Client{}}
 	address := &Address{
 		Username: "username",
 		Domain:   "domain.com",
@@ -46,10 +48,11 @@ func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
 	gockResponse.SetError(errors.New("Some error while requesting"))
 	defer gock.Off()
 
-	c.Assert(HasGravatar(address), check.Equals, false)
+	c.Assert(v.HasGravatar(address), check.Equals, false)
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusNotOk(c *check.C) {
+	v := Verifier{client: &http.Client{}}
 	address := &Address{
 		Username: "username",
 		Domain:   "domain.com",
@@ -59,5 +62,5 @@ func (s *gravatarSuite) TestHasGravatarStatusNotOk(c *check.C) {
 	configureRequestMock(address.MD5(), http.StatusBadRequest)
 	defer gock.Off()
 
-	c.Assert(HasGravatar(address), check.Equals, false)
+	c.Assert(v.HasGravatar(address), check.Equals, false)
 }

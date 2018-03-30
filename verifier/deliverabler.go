@@ -6,41 +6,21 @@ import (
 	"math/rand"
 	"net"
 	"net/smtp"
-	"strconv"
 	"strings"
 	"time"
 
 	"golang.org/x/net/idna"
 )
 
-var (
-	ErrTryAgainLater      = errors.New("Try again later")
-	ErrNoSuchRCPT         = errors.New("No such recipient")
-	ErrFullInbox          = errors.New("Recipient out of disk space")
-	ErrTooManyRCPT        = errors.New("Too many recipients")
-	ErrNoRelay            = errors.New("Not an open relay")
-	ErrMailboxBusy        = errors.New("Mailbox busy")
-	ErrNeedMAILBeforeRCPT = errors.New("Need MAIL before RCPT")
-	ErrRCPTHasMoved       = errors.New("Recipient has moved")
-)
-
-// Deliverabler defines all functionality for checking an email addresses
-// deliverability
-type Deliverabler interface {
-	IsDeliverable(email string, retry int) error
-	HasCatchAll(domain string, retry int) bool
-	Close()
-}
-
-// deliverabler contains the context and smtp.Client needed to check email
+// Deliverabler contains the context and smtp.Client needed to check email
 // address deliverability
-type deliverabler struct {
+type Deliverabler struct {
 	client                   *smtp.Client
 	domain, host, sourceAddr string
 }
 
 // NewDeliverabler generates a new Deliverabler
-func NewDeliverabler(domain, host, sourceAddr string) (Deliverabler, error) {
+func NewDeliverabler(domain, host, sourceAddr string) (*Deliverabler, error) {
 	// Convert any internationalized domain names to ascii
 	asciiDomain, err := idna.ToASCII(domain)
 	if err != nil {
@@ -73,7 +53,7 @@ func NewDeliverabler(domain, host, sourceAddr string) (Deliverabler, error) {
 	if err := client.Mail(sourceAddr); err != nil {
 		return nil, err
 	}
-	return &deliverabler{
+	return &Deliverabler{
 		client:     client,
 		domain:     domain,
 		host:       host,
@@ -106,8 +86,8 @@ func dialSMTPTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
 // IsDeliverable takes an email address and performs the operation of adding
 // the email to the envelope. It also receives a number of retries to reconnect
 // to the MX server before erring out. If a 250 is received the email is valid
-func (d *deliverabler) IsDeliverable(email string, retry int) error {
-	if err := parseRCPTErr(d.client.Rcpt(email)); err != nil {
+func (d *Deliverabler) IsDeliverable(email string, retry int) error {
+	if err := d.client.Rcpt(email); err != nil {
 		// In the case of a timeout on the MX connection we need to re-establish and
 		// retry the deliverability check
 		if shouldReconnect(err) && retry > 0 {
@@ -126,12 +106,12 @@ func (d *deliverabler) IsDeliverable(email string, retry int) error {
 
 // HasCatchAll checks the deliverability of a randomly generated address in
 // order to verify the existence of a catch-all
-func (d *deliverabler) HasCatchAll(domain string, retry int) bool {
+func (d *Deliverabler) HasCatchAll(domain string, retry int) bool {
 	return d.IsDeliverable(randomEmail(domain), retry) == nil
 }
 
 // Close closes the Deliverablers smtp client connection
-func (d *deliverabler) Close() {
+func (d *Deliverabler) Close() {
 	d.client.Quit()
 	d.client.Close()
 }
@@ -149,50 +129,6 @@ func shouldReconnect(err error) bool {
 		return true
 	}
 	return false
-}
-
-// parseRCPTErr receives an MX Servers RCPT response message and generates the
-// cooresponding XM error
-func parseRCPTErr(err error) error {
-	if err == nil {
-		return nil
-	}
-	response := err.Error()
-
-	// Strips out the status code string and converts to an integer for parsing
-	status, err := strconv.Atoi(string([]rune(response)[0:3]))
-	if err != nil {
-		return err
-	}
-	message := string([]rune(response)[3:])
-
-	// If the status code is above 400 there was an error and we should return it
-	if status > 400 {
-		switch status {
-		case 421:
-			return ErrTryAgainLater
-		case 450:
-			return ErrMailboxBusy
-		case 452:
-			if strings.Contains(message, "full") || strings.Contains(message, "space") {
-				return ErrFullInbox
-			}
-			return ErrTooManyRCPT
-		case 503:
-			return ErrNeedMAILBeforeRCPT
-		case 550:
-			return ErrNoSuchRCPT
-		case 551:
-			return ErrRCPTHasMoved
-		case 552:
-			return ErrFullInbox
-		case 553:
-			return ErrNoRelay
-		default:
-			return errors.New(response)
-		}
-	}
-	return nil
 }
 
 // randomEmail generates a random email address using the domain passed. Used

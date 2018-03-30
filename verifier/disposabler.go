@@ -23,23 +23,21 @@ var lists = []string{
 	"https://raw.githubusercontent.com/FGRibreau/mailchecker/master/list.json",
 }
 
-// Disposabler defines all functionality for checking if an email
-// address is disposable
-type Disposabler interface {
-	IsDisposable(domain string) bool
-}
-
-// disposabler contains the map of known disposable email domains
-type disposabler struct {
+// Disposabler contains the map of known disposable email domains
+type Disposabler struct {
 	sync.RWMutex
+	client     *http.Client
 	disposable map[string]bool
 }
 
 // NewDisposabler creates a new Disposabler and starts a domain farmer
 // that retrieves all known disposable domains periodically
-func NewDisposabler() Disposabler {
+func NewDisposabler(client *http.Client) *Disposabler {
 	// Generates a new domainMap on a Disposabler and appends domains
-	d := &disposabler{disposable: make(map[string]bool)}
+	d := &Disposabler{
+		client:     client,
+		disposable: make(map[string]bool),
+	}
 
 	// Retrieves new disposable lists every hour
 	go d.domainFarmer()
@@ -48,18 +46,18 @@ func NewDisposabler() Disposabler {
 
 // IsDisposable tests whether a string is among the known set of disposable
 // mailbox domains. Returns true if the address is disposable
-func (d *disposabler) IsDisposable(domain string) bool {
+func (d *Disposabler) IsDisposable(domain string) bool {
 	d.RLock()
 	defer d.RUnlock()
 	return d.disposable[domain]
 }
 
 // domainFarmer retrieves new disposable domains every set interval
-func (d *disposabler) domainFarmer() error {
+func (d *Disposabler) domainFarmer() error {
 	for {
 		for _, url := range lists {
 			// Performs the request for the domain list
-			resp, err := http.Get(url)
+			resp, err := d.client.Get(url)
 			if err != nil {
 				return err
 			}

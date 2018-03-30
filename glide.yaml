@@ -1,7 +1,6 @@
 package: github.com/sdwolfe32/trumail
 import:
-- package: github.com/gorilla/mux
-- package: github.com/sdwolfe32/slimhttp
+- package: github.com/labstack/echo
 - package: github.com/sirupsen/logrus
 - package: golang.org/x/net
   subpackages:

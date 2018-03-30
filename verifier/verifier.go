@@ -2,7 +2,7 @@ package verifier
 
 import (
 	"encoding/xml"
-	"strings"
+	"net/http"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -23,33 +23,30 @@ type Lookup struct {
 	ErrorDetails string   `json:"errorDetails,omitempty" xml:"errorDetails,omitempty"`
 }
 
-// Verifier defines all functionality for fully validating email addresses
-type Verifier interface {
-	Verify(emails ...string) []*Lookup
-}
-
-// verifier contains all data needed to perform educated email verification
+// Verifier contains all data needed to perform educated email verification
 // lookups
-type verifier struct {
+type Verifier struct {
+	client         *http.Client
 	maxWorkerCount int    // Maximum number of concurrent domain validation workers
 	hostname       string // This machines hostname
 	sourceAddr     string // The source email address
-	disposabler    Disposabler
+	disposabler    *Disposabler
 }
 
 // NewVerifier generates a new AddressVerifier reference
-func NewVerifier(maxWorkerCount int, hostname, sourceAddr string) Verifier {
-	return &verifier{
+func NewVerifier(client *http.Client, maxWorkerCount int, hostname, sourceAddr string) *Verifier {
+	return &Verifier{
+		client:         client,
 		maxWorkerCount: maxWorkerCount,
 		hostname:       hostname,
 		sourceAddr:     sourceAddr,
-		disposabler:    NewDisposabler(),
+		disposabler:    NewDisposabler(client),
 	}
 }
 
 // Verify performs all threaded operations involved with validating
 // one or more email addresses
-func (v *verifier) Verify(emails ...string) []*Lookup {
+func (v *Verifier) Verify(emails ...string) []*Lookup {
 	var totalLookups int
 	var lookups []*Lookup
 
@@ -59,7 +56,8 @@ func (v *verifier) Verify(emails ...string) []*Lookup {
 		address, err := ParseAddress(email)
 		if err != nil {
 			lookups = append(lookups, &Lookup{
-				Error: "Failed to parse email",
+				Address: email,
+				Error:   "Failed to parse email",
 			})
 			continue
 		}
@@ -95,7 +93,7 @@ func (v *verifier) Verify(emails ...string) []*Lookup {
 	}
 	close(jobs)
 
-	// Pull all the results out of the Lookup results channel and returns
+	// Pull all the results out of the Lookup results channel and return
 	for w := 1; w <= len(emails); w++ {
 		lookups = append(lookups, <-results)
 	}
@@ -105,18 +103,17 @@ func (v *verifier) Verify(emails ...string) []*Lookup {
 // worker receives a domain, an array of addresses and a channel where
 // we can place the validation results. Workers are generated for each domain
 // and the deliverabler connection is closed once finished
-func (v *verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
+func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 	for j := range jobs {
-		var deliverabler Deliverabler
 		// Defines the domain specific constant variables
 		var disposable, catchAll bool
-		var basicErr, detailErr string
+		var basicErr, detailErr error
 
 		// Attempts to form an SMTP Connection and returns either a Deliverabler
 		// or an error which will be parsed and returned in the lookup
 		deliverabler, err := NewDeliverabler(j[0].Domain, v.hostname, v.sourceAddr)
 		if err != nil {
-			basicErr, detailErr = parseErr(err)
+			basicErr, detailErr = parseSTDErr(err), err
 		}
 
 		// Retrieves the catchall status if there's a deliverabler and we don't yet
@@ -139,16 +136,19 @@ func (v *verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 				if catchAll {
 					deliverable = true // Catchall domains will always be deliverable
 				} else if deliverabler != nil {
-					if err := deliverabler.IsDeliverable(address.Address, 5); err == nil {
+					if err := deliverabler.IsDeliverable(address.Address, 3); err != nil {
+						if err == ErrFullInbox {
+							fullInbox = true
+						}
+						basicErr, detailErr = parseRCPTErr(err), err
+					} else {
 						deliverable = true
-					} else if err == ErrFullInbox {
-						fullInbox = true
 					}
 				}
 				return nil
 			})
 			g.Go(func() error {
-				gravatar = HasGravatar(address)
+				gravatar = v.HasGravatar(address)
 				return nil
 			})
 			g.Wait()
@@ -158,41 +158,21 @@ func (v *verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 				Address:      address.Address,
 				Username:     address.Username,
 				Domain:       address.Domain,
-				HostExists:   !strings.Contains(detailErr, "no such host"),
+				HostExists:   basicErr != ErrNoSuchHost,
 				Deliverable:  deliverable,
 				FullInbox:    fullInbox,
 				Disposable:   disposable,
 				CatchAll:     catchAll,
 				Gravatar:     gravatar,
-				Error:        basicErr,
-				ErrorDetails: detailErr,
+				Error:        errStr(basicErr),
+				ErrorDetails: errStr(detailErr),
 			}
 		}
 
-		// Close the connection with the MX server now that we are finished
+		// Close the connection with the MX server now that we've iterated over
+		// addresses we're interested in for this server
 		if deliverabler != nil {
 			deliverabler.Close()
 		}
 	}
-}
-
-// parseErr parses an error in order to return a more user friendly version of
-// the error
-func parseErr(err error) (string, string) {
-	if err != nil {
-		errStr := err.Error()
-		switch {
-		case strings.Contains(errStr, "timeout"):
-			return "The connection to the mail server has timed out", errStr
-		case strings.Contains(errStr, "no such host"):
-			return "Mail server does not exist", errStr
-		case strings.Contains(errStr, "unavailable"):
-			return "Mail server is unavailable", errStr
-		case strings.Contains(errStr, "block"):
-			return "Blocked by mail server", errStr
-		default:
-			return errStr, errStr
-		}
-	}
-	return "", ""
 }

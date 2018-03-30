@@ -2,9 +2,10 @@ package api
 
 import (
 	"net/http"
+	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/sdwolfe32/slimhttp"
+	"github.com/labstack/echo"
+
 	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
 )
@@ -13,54 +14,58 @@ import (
 // when processing bulk email lists (not a public endpoint yet)
 const maxWorkerCount = 20
 
-// TrumailService defines all functionality for the Trumail email
-// verification API
-type TrumailService interface {
-	Lookup(r *http.Request) (interface{}, error)
-}
+var (
+	// ErrValidationFailure indicates that there was an error while validating an email
+	ErrValidationFailure = echo.NewHTTPError(http.StatusInternalServerError, "Error validating email")
+	// ErrUnsupportedFormat indicates that the requestor has defined an unsupported response format
+	ErrUnsupportedFormat = echo.NewHTTPError(http.StatusBadRequest, "Unsupported format")
+)
 
-// trumail contains all dependencies for a TrumailService
-type trumail struct {
+// TrumailAPI contains all dependencies for the Trumail API
+type TrumailAPI struct {
 	log      *logrus.Entry
 	hostname string
-	verify   verifier.Verifier
+	verify   *verifier.Verifier
 }
 
-// NewTrumailService generates a new NewTrumailService
-func NewTrumailService(log *logrus.Logger, hostname, sourceAddr string) TrumailService {
-	return &trumail{
+// NewTrumailAPI generates a new Trumail reference
+func NewTrumailAPI(log *logrus.Logger, hostname, sourceAddr string) *TrumailAPI {
+	return &TrumailAPI{
 		log:      log.WithField("service", "lookup"),
 		hostname: hostname,
-		verify:   verifier.NewVerifier(maxWorkerCount, hostname, sourceAddr),
+		verify: verifier.NewVerifier(&http.Client{
+			Timeout: time.Second,
+		}, maxWorkerCount, hostname, sourceAddr),
 	}
 }
 
 // Lookup performs a single email validation and returns a fully
 // populated lookup or an error
-func (t *trumail) Lookup(r *http.Request) (interface{}, error) {
+func (t *TrumailAPI) Lookup(c echo.Context) error {
 	l := t.log.WithField("handler", "Lookup")
 	l.Debug("New Lookup request received")
 
 	// Decode the request
 	l.Debug("Decoding the request")
-	email := mux.Vars(r)["email"]
-	l = l.WithField("email", email)
-
-	// Verify required fields exist
-	l.Debug("Verifying request has all required fields")
-	if email == "" {
-		return nil, slimhttp.NewError("No email found on request", http.StatusBadRequest, nil).Log(l)
-	}
+	format, email := c.Param("format"), c.Param("email")
+	l = l.WithField("format", format).WithField("email", email)
 
 	// Performs the full email validation
 	l.Debug("Performing new validation lookup")
 	lookups := t.verify.Verify(email)
 	if len(lookups) == 0 {
-		return nil, slimhttp.NewError("Error validating email", http.StatusInternalServerError, nil).Log(l)
+		l.WithError(ErrValidationFailure).Error("Failed to validate email")
+		return ErrValidationFailure
 	}
 	lookup := lookups[0]
 
 	// Returns the email validation lookup to the requestor
 	l.WithField("lookup", lookup).Debug("Returning Email Lookup")
-	return lookup, nil
+	switch format {
+	case "json":
+		return c.JSON(http.StatusOK, lookup)
+	case "xml":
+		return c.XML(http.StatusOK, lookup)
+	}
+	return ErrUnsupportedFormat
 }

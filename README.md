@@ -26,9 +26,13 @@ import (
 )
 
 func main() {
-	v := trumail.NewVerifier(20, "YOUR_HOSTNAME.COM", "YOUR_EMAIL@DOMAIN.COM")
-	res := v.Verify("test@gmail.com")
-	log.Println(*res[0])
+  v := trumail.NewVerifier(20, "YOUR_HOSTNAME.COM", "YOUR_EMAIL@DOMAIN.COM")
+  
+  // Validate a single address
+  log.Println(v.Verify("test@gmail.com"))
+  
+  // Validate multiple addresses at once (uses the same connection if hostnames match)
+  log.Println(v.Verify("test@gmail.com", "test2@gmail.com", "test3@gmail.com"))
 }
 ```
 
