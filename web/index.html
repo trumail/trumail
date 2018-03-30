@@ -82,12 +82,14 @@
                             <div class="ui compact selection dropdown" tabindex="0">
                                 <select name="test-format">
                                     <option value="json">JSON</option>
+                                    <option value="jsonp">JSONP</option>
                                     <option value="xml">XML</option>
                                 </select>
                                 <i class="dropdown icon"></i>
                                 <div class="text">JSON</div>
                                 <div class="menu" tabindex="-1">
                                     <div class="item active selected" data-value="json">JSON</div>
+                                    <div class="item" data-value="jsonp">JSONP</div>
                                     <div class="item" data-value="xml">XML</div>
                                 </div>
                             </div>
@@ -112,10 +114,13 @@
                 <div class="ui dark1 inverted segment">
                     <code>trumail.io/{format}/{email}</code>
                 </div>
-                Currently there are two formats supported:
+                Currently there are three formats supported:
                 <a href="http://en.wikipedia.org/wiki/JSON">
                     <b>json</b>
-                </a> and
+                </a>,
+                <a href="http://en.wikipedia.org/wiki/JSONP">
+                    <b>jsonp</b>
+                </a>(using a callback query param) and
                 <a href="http://en.wikipedia.org/wiki/XML">
                     <b>xml</b>
                 </a>.
@@ -126,23 +131,27 @@
         <h2>
             <i class="help icon"></i> What it does</h2>
         <p>
-            Trumail is a fast and accurate email address verification API written entirely in Go. It was built with the intention of providing software engineers and businesses with a simple and easy to use solution to bounced emails.
+            Trumail is a fast and accurate email address verification API written entirely in Go. It was built with the intention of
+            providing software engineers and businesses with a simple and easy to use solution to bounced emails.
         </p>
         <p>
             Whether you're a developer writing an application that requires the registration of new
-            <b>valid</b> users or a business with a large mailing list, Trumail can handle the heavy lifting of verifying the validity of your email addresses so that you can make a confident decision on whether or not to dispatch messages to a given
-            address.
+            <b>valid</b> users or a business with a large mailing list, Trumail can handle the heavy lifting of verifying the
+            validity of your email addresses so that you can make a confident decision on whether or not to dispatch messages
+            to a given address.
         </p>
         <p>
-            We currently provide a real-time lookup API which allows you to make an instant informed decision on user validity. In the near future we hope to have Bulk Lookups fully implemented.
+            We currently provide a real-time lookup API which allows you to make an instant informed decision on user validity. In the
+            near future we hope to have Bulk Lookups fully implemented.
         </p>
     </div>
     <div class="ui container padded-bottom">
         <h2>
             <i class="protect icon"></i> Privacy Policy</h2>
         <p>
-            To protect you and your users contact information, we DO NOT store any lookup data on our own servers. This is a basic API service and we therefore have no database to store data in. All that is currently collected are request logs in order to debug issues
-            with the API, all of which are pruned every 1,500 messages (according to Herokus documentation).
+            To protect you and your users contact information, we DO NOT store any lookup data on our own servers. This is a basic API
+            service and we therefore have no database to store data in. All that is currently collected are request logs
+            in order to debug issues with the API, all of which are pruned every 1,500 messages (according to Herokus documentation).
         </p>
     </div>
     <div class="dark1">

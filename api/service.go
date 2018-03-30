@@ -19,6 +19,8 @@ var (
 	ErrValidationFailure = echo.NewHTTPError(http.StatusInternalServerError, "Error validating email")
 	// ErrUnsupportedFormat indicates that the requestor has defined an unsupported response format
 	ErrUnsupportedFormat = echo.NewHTTPError(http.StatusBadRequest, "Unsupported format")
+	// ErrInvalidCallback indicates that the request is missing the callback queryparam
+	ErrInvalidCallback = echo.NewHTTPError(http.StatusBadRequest, "Invalid callback query param provided")
 )
 
 // TrumailAPI contains all dependencies for the Trumail API
@@ -47,8 +49,8 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// Decode the request
 	l.Debug("Decoding the request")
-	format, email := c.Param("format"), c.Param("email")
-	l = l.WithField("format", format).WithField("email", email)
+	email := c.Param("email")
+	l = l.WithField("email", email)
 
 	// Performs the full email validation
 	l.Debug("Performing new validation lookup")
@@ -61,11 +63,24 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// Returns the email validation lookup to the requestor
 	l.WithField("lookup", lookup).Debug("Returning Email Lookup")
-	switch format {
+	return t.encodeLookup(c, lookup)
+}
+
+// encodeLookup encodes the passed response using the "format" and
+// "callback" parameters on the passed echo.Context
+func (t *TrumailAPI) encodeLookup(c echo.Context, res interface{}) error {
+	switch c.Param("format") {
 	case "json":
-		return c.JSON(http.StatusOK, lookup)
+		return c.JSON(http.StatusOK, res)
+	case "jsonp":
+		callback := c.QueryParam("callback")
+		if callback == "" {
+			return ErrInvalidCallback
+		}
+		return c.JSONP(http.StatusOK, callback, res)
 	case "xml":
-		return c.XML(http.StatusOK, lookup)
+		return c.XML(http.StatusOK, res)
+	default:
+		return ErrUnsupportedFormat
 	}
-	return ErrUnsupportedFormat
 }

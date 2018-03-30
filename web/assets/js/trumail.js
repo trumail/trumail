@@ -13,9 +13,13 @@ $(document).ready(function() {
 
         $('#test-button').addClass('loading');
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'https://trumail.io/' + format + '/' + email, true);
+        var url = '/' + format + '/' + email;
+        if (format === 'jsonp') {
+            url = url + '?callback=myCallback';
+        }
+        xhr.open('GET', url, true);
         xhr.onload = function(e) {
-            var results;
+            var results = xhr.responseText;
             if (format === 'json') {
                 results = vkbeautify.json(xhr.responseText, 4);
             }

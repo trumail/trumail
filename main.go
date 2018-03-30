@@ -35,8 +35,8 @@ func main() {
 	l.Info("Binding API endpoints to the router")
 	e.GET("/:format/:email", s.Lookup)
 
+	// Host static demo pages if configured to do so
 	if config.ServeWeb {
-		// Set all remaining paths to point to static files (must come after)
 		l.Info("Serving web UI on index")
 		e.Static("/", "web")
 		e.Static("/assets", "web/assets")

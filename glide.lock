@@ -1,5 +1,5 @@
 hash: 9d1afefb4ea752bff251f7d62b939cf2c71aa2f786ee9badfb041ba6035917d3
-updated: 2018-03-29T13:29:07.340682345-07:00
+updated: 2018-03-29T17:31:49.376384-07:00
 imports:
 - name: github.com/labstack/echo
   version: 60f88a7a1c4beaf04b6f9254c8d72b45a2ab161e
@@ -13,7 +13,7 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/sirupsen/logrus
-  version: 90150a8ed11b6ce285e77e8af2b0109559ce4777
+  version: 778f2e774c725116edbc3d039dc0dfc1cc62aae8
 - name: github.com/valyala/bytebufferpool
   version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
 - name: github.com/valyala/fasttemplate
