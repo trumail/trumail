@@ -39,7 +39,7 @@ func main() {
 ## Running with Docker
 
 ```
-docker run -p 8000:8000 -e SOURCE_ADDR=my.email@gmail.com sdwolfe32/trumail
+docker run -p 8080:8080 -e SOURCE_ADDR=my.email@gmail.com sdwolfe32/trumail
 ```
 
 ## How it Works
