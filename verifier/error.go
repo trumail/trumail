@@ -36,7 +36,9 @@ func parseSTDErr(err error) (error, error) {
 
 	// Return a friendly error that
 	switch {
-	case strings.Contains(errStr, "block") || strings.Contains(errStr, "blacklist") || strings.Contains(errStr, "spamhaus"):
+	case strings.Contains(errStr, "block") ||
+		strings.Contains(errStr, "blacklist") ||
+		strings.Contains(errStr, "spamhaus"):
 		return ErrBlocked, err
 	case strings.Contains(errStr, "timeout"):
 		return ErrTimeout, err
@@ -68,21 +70,24 @@ func parseRCPTErr(err error) (error, error) {
 		return ErrInvalidStatusCode, err
 	}
 
-	// Don't return an error if the error contains anything about the address
-	// being undeliverable
-	if strings.Contains(errStr, "undeliverable") {
-		return nil, nil
-	}
-
 	// If the status code is above 400 there was an error and we should return it
 	if status > 400 {
+		// Don't return an error if the error contains anything about the address
+		// being undeliverable
+		if strings.Contains(errStr, "undeliverable") ||
+			strings.Contains(errStr, "recipient invalid") ||
+			strings.Contains(errStr, "recipient rejected") {
+			return nil, nil
+		}
+
 		switch status {
 		case 421:
 			return ErrTryAgainLater, err
 		case 450:
 			return ErrMailboxBusy, err
 		case 452:
-			if strings.Contains(errStr, "full") || strings.Contains(errStr, "space") {
+			if strings.Contains(errStr, "full") ||
+				strings.Contains(errStr, "space") {
 				return ErrFullInbox, err
 			}
 			return ErrTooManyRCPT, err

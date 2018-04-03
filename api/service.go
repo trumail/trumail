@@ -12,7 +12,10 @@ import (
 
 // maxWorkerCount specifies a maximum number of goroutines allowed
 // when processing bulk email lists (not a public endpoint yet)
-const maxWorkerCount = 20
+const (
+	maxWorkerCount = 20
+	timeout        = time.Second * 10
+)
 
 var (
 	// ErrValidationFailure indicates that there was an error while validating an email
@@ -35,9 +38,8 @@ func NewTrumailAPI(log *logrus.Logger, hostname, sourceAddr string) *TrumailAPI 
 	return &TrumailAPI{
 		log:      log.WithField("service", "lookup"),
 		hostname: hostname,
-		verify: verifier.NewVerifier(&http.Client{
-			Timeout: time.Second,
-		}, maxWorkerCount, hostname, sourceAddr),
+		verify: verifier.NewVerifier(&http.Client{Timeout: timeout},
+			maxWorkerCount, hostname, sourceAddr),
 	}
 }
 

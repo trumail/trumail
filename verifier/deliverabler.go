@@ -16,11 +16,12 @@ import (
 // address deliverability
 type Deliverabler struct {
 	client                   *smtp.Client
+	timeout                  time.Duration
 	domain, host, sourceAddr string
 }
 
 // NewDeliverabler generates a new Deliverabler
-func NewDeliverabler(domain, host, sourceAddr string) (*Deliverabler, error) {
+func NewDeliverabler(domain, host, sourceAddr string, timeout time.Duration) (*Deliverabler, error) {
 	// Convert any internationalized domain names to ascii
 	asciiDomain, err := idna.ToASCII(domain)
 	if err != nil {
@@ -39,7 +40,7 @@ func NewDeliverabler(domain, host, sourceAddr string) (*Deliverabler, error) {
 	}
 
 	// Dial the SMTP server with the provided timeout
-	client, err := dialSMTPTimeout(records[0].Host+":25", 3*time.Second)
+	client, err := dialSMTPTimeout(records[0].Host+":25", timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +56,7 @@ func NewDeliverabler(domain, host, sourceAddr string) (*Deliverabler, error) {
 	}
 	return &Deliverabler{
 		client:     client,
+		timeout:    timeout,
 		domain:     domain,
 		host:       host,
 		sourceAddr: sourceAddr,
@@ -92,8 +94,8 @@ func (d *Deliverabler) IsDeliverable(email string, retry int) error {
 		// retry the deliverability check
 		if shouldReconnect(err) && retry > 0 {
 			d.Close()
-			time.Sleep(time.Second)                                    // Sleep for 1s as a backoff
-			d2, err := NewDeliverabler(d.domain, d.host, d.sourceAddr) // Generate a new client
+			time.Sleep(time.Second)                                               // Sleep for 1s as a backoff
+			d2, err := NewDeliverabler(d.domain, d.host, d.sourceAddr, d.timeout) // Generate a new client
 			if err != nil {
 				return err
 			}

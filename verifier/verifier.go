@@ -111,7 +111,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 
 		// Attempts to form an SMTP Connection and returns either a Deliverabler
 		// or an error which will be parsed and returned in the lookup
-		deliverabler, err := NewDeliverabler(j[0].Domain, v.hostname, v.sourceAddr)
+		deliverabler, err := NewDeliverabler(j[0].Domain, v.hostname, v.sourceAddr, v.client.Timeout)
 		if err != nil {
 			basicErr, detailErr = parseSTDErr(err)
 		}
