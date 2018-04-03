@@ -36,14 +36,14 @@ func parseSTDErr(err error) error {
 
 	// Return a friendly error that
 	switch {
+	case strings.Contains(errStr, "block") || strings.Contains(errStr, "blacklist") || strings.Contains(errStr, "spamhaus"):
+		return ErrBlocked
 	case strings.Contains(errStr, "timeout"):
 		return ErrTimeout
 	case strings.Contains(errStr, "no such host"):
 		return ErrNoSuchHost
 	case strings.Contains(errStr, "unavailable"):
 		return ErrServerUnavailable
-	case strings.Contains(errStr, "block") || strings.Contains(errStr, "spamhaus"):
-		return ErrBlocked
 	default:
 		return err
 	}
