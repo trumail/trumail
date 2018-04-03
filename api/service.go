@@ -14,7 +14,6 @@ import (
 // when processing bulk email lists (not a public endpoint yet)
 const (
 	maxWorkerCount = 20
-	timeout        = time.Second * 20
 )
 
 var (
@@ -34,11 +33,11 @@ type TrumailAPI struct {
 }
 
 // NewTrumailAPI generates a new Trumail reference
-func NewTrumailAPI(log *logrus.Logger, hostname, sourceAddr string) *TrumailAPI {
+func NewTrumailAPI(log *logrus.Logger, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
 	return &TrumailAPI{
 		log:      log.WithField("service", "lookup"),
 		hostname: hostname,
-		verify: verifier.NewVerifier(&http.Client{Timeout: timeout},
+		verify: verifier.NewVerifier(&http.Client{Timeout: time.Duration(timeoutSecs) * time.Second},
 			maxWorkerCount, hostname, sourceAddr),
 	}
 }

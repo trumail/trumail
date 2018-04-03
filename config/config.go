@@ -22,7 +22,7 @@ var (
 	Env = getEnv("ENVIRONMENT", "development")
 
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
-	HTTPClientTimeout, _ = strconv.ParseUint(getEnv("HTTP_CLIENT_TIMEOUT", "5"), 10, 8)
+	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "20"))
 )
 
 // getEnv retrieves variables from the environment and falls back

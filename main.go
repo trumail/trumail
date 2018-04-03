@@ -29,7 +29,7 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
-	s := api.NewTrumailAPI(logger, hostname, config.SourceAddr)
+	s := api.NewTrumailAPI(logger, hostname, config.SourceAddr, config.HTTPClientTimeout)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
