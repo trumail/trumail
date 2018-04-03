@@ -28,76 +28,82 @@ var (
 
 // parseSTDErr parses a standard error in order to return a more user
 // friendly version of the error
-func parseSTDErr(err error) error {
+func parseSTDErr(err error) (error, error) {
 	if err == nil {
-		return nil
+		return nil, nil
 	}
-	errStr := err.Error()
+	errStr := strings.ToLower(err.Error())
 
 	// Return a friendly error that
 	switch {
 	case strings.Contains(errStr, "block") || strings.Contains(errStr, "blacklist") || strings.Contains(errStr, "spamhaus"):
-		return ErrBlocked
+		return ErrBlocked, err
 	case strings.Contains(errStr, "timeout"):
-		return ErrTimeout
+		return ErrTimeout, err
 	case strings.Contains(errStr, "no such host"):
-		return ErrNoSuchHost
+		return ErrNoSuchHost, err
 	case strings.Contains(errStr, "unavailable"):
-		return ErrServerUnavailable
+		return ErrServerUnavailable, err
 	default:
-		return err
+		return err, err
 	}
 }
 
 // parseRCPTErr receives an MX Servers RCPT response message and generates the
 // cooresponding MX error
-func parseRCPTErr(err error) error {
+func parseRCPTErr(err error) (error, error) {
 	if err == nil {
-		return nil
+		return nil, err
 	}
-	errStr := err.Error()
+	errStr := strings.ToLower(err.Error())
 
 	// Verify the length of the error before reading nil indexes
 	if len(errStr) < 3 {
-		return ErrNoStatusCode
+		return ErrNoStatusCode, err
 	}
 
 	// Strips out the status code string and converts to an integer for parsing
 	status, err := strconv.Atoi(string([]rune(errStr)[0:3]))
 	if err != nil {
-		return ErrInvalidStatusCode
+		return ErrInvalidStatusCode, err
+	}
+
+	// Don't return an error if the error contains anything about the address
+	// being undeliverable
+	if strings.Contains(errStr, "undeliverable") {
+		return nil, nil
 	}
 
 	// If the status code is above 400 there was an error and we should return it
 	if status > 400 {
 		switch status {
 		case 421:
-			return ErrTryAgainLater
+			return ErrTryAgainLater, err
 		case 450:
-			return ErrMailboxBusy
+			return ErrMailboxBusy, err
 		case 452:
 			if strings.Contains(errStr, "full") || strings.Contains(errStr, "space") {
-				return ErrFullInbox
+				return ErrFullInbox, err
 			}
-			return ErrTooManyRCPT
+			return ErrTooManyRCPT, err
 		case 503:
-			return ErrNeedMAILBeforeRCPT
+			return ErrNeedMAILBeforeRCPT, err
 		case 550:
 			if strings.Contains(errStr, "spamhaus") {
-				return ErrBlocked
+				return ErrBlocked, err
 			}
-			return ErrMailboxUnavailable
+			return ErrMailboxUnavailable, err
 		case 551:
-			return ErrRCPTHasMoved
+			return ErrRCPTHasMoved, err
 		case 552:
-			return ErrFullInbox
+			return ErrFullInbox, err
 		case 553:
-			return ErrNoRelay
+			return ErrNoRelay, err
 		default:
 			return parseSTDErr(err)
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // errStr returns the string representation of an error, returning

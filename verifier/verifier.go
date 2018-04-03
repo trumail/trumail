@@ -113,7 +113,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 		// or an error which will be parsed and returned in the lookup
 		deliverabler, err := NewDeliverabler(j[0].Domain, v.hostname, v.sourceAddr)
 		if err != nil {
-			basicErr, detailErr = parseSTDErr(err), err
+			basicErr, detailErr = parseSTDErr(err)
 		}
 
 		// Retrieves the catchall status if there's a deliverabler and we don't yet
@@ -140,7 +140,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 						if err == ErrFullInbox {
 							fullInbox = true
 						}
-						basicErr, detailErr = parseRCPTErr(err), err
+						basicErr, detailErr = parseRCPTErr(err)
 					} else {
 						deliverable = true
 					}
