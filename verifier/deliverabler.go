@@ -121,12 +121,16 @@ func (d *Deliverabler) Close() {
 // shouldReconnect determines whether or not we should retry connecting to the
 // smtp server based on the response received
 func shouldReconnect(err error) bool {
-	errStr := err.Error()
+	if err == nil {
+		return false
+	}
+	errStr := strings.ToLower(err.Error())
 	if strings.Contains(errStr, "i/o timeout") ||
 		strings.Contains(errStr, "broken pipe") ||
 		strings.Contains(errStr, "use of closed network connection") ||
 		strings.Contains(errStr, "connection reset by peer") ||
 		strings.Contains(errStr, "multiple regions") ||
+		strings.Contains(errStr, "server busy") ||
 		strings.Contains(errStr, "EOF") ||
 		err == ErrTooManyRCPT || err == ErrTryAgainLater {
 		return true
