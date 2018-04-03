@@ -17,7 +17,6 @@ var (
 
 	// RCPT Errors
 	ErrTryAgainLater      = errors.New("Try again later")
-	ErrMailboxUnavailable = errors.New("Mailbox Unavailable")
 	ErrFullInbox          = errors.New("Recipient out of disk space")
 	ErrTooManyRCPT        = errors.New("Too many recipients")
 	ErrNoRelay            = errors.New("Not an open relay")
@@ -55,7 +54,7 @@ func parseSTDErr(err error) (error, error) {
 // cooresponding MX error
 func parseRCPTErr(err error) (error, error) {
 	if err == nil {
-		return nil, err
+		return nil, nil
 	}
 	errStr := strings.ToLower(err.Error())
 
@@ -65,8 +64,8 @@ func parseRCPTErr(err error) (error, error) {
 	}
 
 	// Strips out the status code string and converts to an integer for parsing
-	status, err := strconv.Atoi(string([]rune(errStr)[0:3]))
-	if err != nil {
+	status, convErr := strconv.Atoi(string([]rune(errStr)[0:3]))
+	if convErr != nil {
 		return ErrInvalidStatusCode, err
 	}
 
@@ -93,11 +92,11 @@ func parseRCPTErr(err error) (error, error) {
 			return ErrTooManyRCPT, err
 		case 503:
 			return ErrNeedMAILBeforeRCPT, err
-		case 550:
+		case 550: // 550 is Mailbox Unavailable - usually undeliverable
 			if strings.Contains(errStr, "spamhaus") {
 				return ErrBlocked, err
 			}
-			return ErrMailboxUnavailable, err
+			return nil, nil
 		case 551:
 			return ErrRCPTHasMoved, err
 		case 552:
