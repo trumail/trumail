@@ -14,7 +14,7 @@ import (
 // when processing bulk email lists (not a public endpoint yet)
 const (
 	maxWorkerCount = 20
-	timeout        = time.Second * 10
+	timeout        = time.Second * 20
 )
 
 var (
