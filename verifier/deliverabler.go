@@ -126,6 +126,7 @@ func shouldReconnect(err error) bool {
 		strings.Contains(errStr, "broken pipe") ||
 		strings.Contains(errStr, "use of closed network connection") ||
 		strings.Contains(errStr, "connection reset by peer") ||
+		strings.Contains(errStr, "multiple regions") ||
 		strings.Contains(errStr, "EOF") ||
 		err == ErrTooManyRCPT || err == ErrTryAgainLater {
 		return true
