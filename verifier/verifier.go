@@ -107,6 +107,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 	for j := range jobs {
 		// Defines the domain specific constant variables
 		var disposable, catchAll bool
+		hostExists := true // Default host existence to true
 		var basicErr, detailErr error
 
 		// Attempts to form an SMTP Connection and returns either a Deliverabler
@@ -114,6 +115,11 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 		deliverabler, err := NewDeliverabler(j[0].Domain, v.hostname, v.sourceAddr, v.client.Timeout)
 		if err != nil {
 			basicErr, detailErr = parseSTDErr(err)
+			if basicErr == ErrNoSuchHost {
+				basicErr = nil
+				detailErr = nil
+				hostExists = false
+			}
 		}
 
 		// Retrieves the catchall status if there's a deliverabler and we don't yet
@@ -141,6 +147,11 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 							fullInbox = true
 						}
 						basicErr, detailErr = parseRCPTErr(err)
+						if basicErr == ErrNoSuchHost {
+							basicErr = nil
+							detailErr = nil
+							hostExists = false
+						}
 					} else {
 						deliverable = true
 					}
@@ -158,7 +169,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 				Address:      address.Address,
 				Username:     address.Username,
 				Domain:       address.Domain,
-				HostExists:   basicErr != ErrNoSuchHost,
+				HostExists:   hostExists,
 				Deliverable:  deliverable,
 				FullInbox:    fullInbox,
 				Disposable:   disposable,
