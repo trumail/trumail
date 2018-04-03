@@ -60,26 +60,33 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 		return ErrValidationFailure
 	}
 	lookup := lookups[0]
+	l = l.WithField("lookup", lookup)
+
+	// Return an error response code if there's an error
+	if lookup.Error != "" || lookup.ErrorDetails != "" {
+		l.Error("Error performing lookup")
+		return t.encodeLookup(c, http.StatusInternalServerError, lookup)
+	}
 
 	// Returns the email validation lookup to the requestor
-	l.WithField("lookup", lookup).Debug("Returning Email Lookup")
-	return t.encodeLookup(c, lookup)
+	l.Debug("Returning Email Lookup")
+	return t.encodeLookup(c, http.StatusOK, lookup)
 }
 
 // encodeLookup encodes the passed response using the "format" and
 // "callback" parameters on the passed echo.Context
-func (t *TrumailAPI) encodeLookup(c echo.Context, res interface{}) error {
+func (t *TrumailAPI) encodeLookup(c echo.Context, code int, res interface{}) error {
 	switch c.Param("format") {
 	case "json":
-		return c.JSON(http.StatusOK, res)
+		return c.JSON(code, res)
 	case "jsonp":
 		callback := c.QueryParam("callback")
 		if callback == "" {
 			return ErrInvalidCallback
 		}
-		return c.JSONP(http.StatusOK, callback, res)
+		return c.JSONP(code, callback, res)
 	case "xml":
-		return c.XML(http.StatusOK, res)
+		return c.XML(code, res)
 	default:
 		return ErrUnsupportedFormat
 	}
