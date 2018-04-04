@@ -1,5 +1,5 @@
 hash: 0c3ae99b8c4ba0be44f32097b63eb773603c9437d545f03e2fd412b0cd18ef8b
-updated: 2018-04-04T01:31:38.379702-07:00
+updated: 2018-04-04T11:21:26.563908687-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -19,7 +19,7 @@ imports:
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/tinystat
-  version: 5f47f001f666469da04ff249e528c55825b31851
+  version: c446f7fcdc88e5dfc0b98b43072077652cbbc914
   subpackages:
   - client
 - name: github.com/sirupsen/logrus
@@ -35,7 +35,7 @@ imports:
   - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
-  version: b68f30494add4df6bd8ef5e82803f308e7f7c59c
+  version: b3c676e531a6dc479fa1b35ac961c13f5e2b4d2e
   subpackages:
   - context
   - idna
@@ -44,12 +44,12 @@ imports:
   subpackages:
   - errgroup
 - name: golang.org/x/sys
-  version: f67933eaf9e2f750f58a234209a11ebc1107be38
+  version: fcb792cfc275f85145c640d36af94b591eed4275
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: ece95c760240037f89ebcbdd7155ac8cb52e38fa
+  version: ab6d1a1d69421dd32ae765488d04300186d73003
   subpackages:
   - secure/bidirule
   - transform

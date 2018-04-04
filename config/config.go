@@ -20,6 +20,10 @@ var (
 	TinystatAppID = getEnv("TINYSTAT_APP_ID", "")
 	// TinystatToken is the Token used to authenticate Tinystat requests
 	TinystatToken = getEnv("TINYSTAT_TOKEN", "")
+	// HerokuAppID is the App ID used with Heroku
+	HerokuAppID = getEnv("HEROKU_APP_ID", "")
+	// HerokuToken is the Token used to authenticate Heroku requests
+	HerokuToken = getEnv("HEROKU_TOKEN", "")
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
 	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "20"))
 )

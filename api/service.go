@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	raven "github.com/getsentry/raven-go"
@@ -27,22 +28,26 @@ var (
 
 // TrumailAPI contains all dependencies for the Trumail API
 type TrumailAPI struct {
-	log      *logrus.Entry
-	tinystat *tinystat.Client
-	hostname string
-	verify   *verifier.Verifier
+	log         *logrus.Entry
+	tinystat    *tinystat.Client
+	herokuAppID string
+	herokuToken string
+	hostname    string
+	verify      *verifier.Verifier
 }
 
 // NewTrumailAPI generates a new Trumail reference
-func NewTrumailAPI(log *logrus.Logger, tinystatAppID, tinystatToken, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
+func NewTrumailAPI(log *logrus.Logger, tinystatAppID, tinystatToken, herokuAppID, herokuToken, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
 	var tc *tinystat.Client
 	if tinystatAppID != "" && tinystatToken != "" {
 		tc = tinystat.New(tinystatAppID, tinystatToken)
 	}
 	return &TrumailAPI{
-		log:      log.WithField("service", "lookup"),
-		tinystat: tc,
-		hostname: hostname,
+		log:         log.WithField("service", "lookup"),
+		tinystat:    tc,
+		herokuAppID: herokuAppID,
+		herokuToken: herokuToken,
+		hostname:    hostname,
 		verify: verifier.NewVerifier(&http.Client{Timeout: time.Duration(timeoutSecs) * time.Second},
 			maxWorkerCount, hostname, sourceAddr),
 	}
@@ -68,6 +73,11 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	}
 	lookup := lookups[0]
 	l = l.WithField("lookup", lookup)
+
+	// If blocked by Spamhaus trigger a Heroku dyno restart
+	if strings.Contains(strings.ToLower(lookup.ErrorDetails), "spamhaus") {
+		go restartDyno(t.herokuAppID, t.herokuToken)
+	}
 
 	// Return an error response code if there's an error
 	if lookup.Error != "" || lookup.ErrorDetails != "" {
