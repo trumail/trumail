@@ -8,19 +8,18 @@ import (
 var (
 	// RateLimit defines if the response on router should be throttled
 	RateLimit, _ = strconv.ParseBool(getEnv("RATE_LIMIT", "false"))
-
 	// SourceAddr defines the address used on verifier
 	SourceAddr = getEnv("SOURCE_ADDR", "admin@gmail.com")
-
 	// ServeWeb defines if the web static site should be served
 	ServeWeb, _ = strconv.ParseBool(getEnv("SERVE_WEB", "false"))
-
 	// Port defines the port used by the api server
 	Port = getEnv("PORT", "8080")
-
 	// Env defines the environment where the service is being ran
 	Env = getEnv("ENVIRONMENT", "development")
-
+	// TinystatAppID is the App ID used with Tinystat
+	TinystatAppID = getEnv("TINYSTAT_APP_ID", "")
+	// TinystatToken is the Token used to authenticate Tinystat requests
+	TinystatToken = getEnv("TINYSTAT_TOKEN", "")
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
 	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "20"))
 )

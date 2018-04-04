@@ -1,20 +1,20 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
+	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
-
+	tinystat "github.com/sdwolfe32/tinystat/client"
 	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
 )
 
 // maxWorkerCount specifies a maximum number of goroutines allowed
 // when processing bulk email lists (not a public endpoint yet)
-const (
-	maxWorkerCount = 20
-)
+const maxWorkerCount = 20
 
 var (
 	// ErrValidationFailure indicates that there was an error while validating an email
@@ -28,14 +28,20 @@ var (
 // TrumailAPI contains all dependencies for the Trumail API
 type TrumailAPI struct {
 	log      *logrus.Entry
+	tinystat *tinystat.Client
 	hostname string
 	verify   *verifier.Verifier
 }
 
 // NewTrumailAPI generates a new Trumail reference
-func NewTrumailAPI(log *logrus.Logger, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
+func NewTrumailAPI(log *logrus.Logger, tinystatAppID, tinystatToken, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
+	var tc *tinystat.Client
+	if tinystatAppID != "" && tinystatToken != "" {
+		tc = tinystat.New(tinystatAppID, tinystatToken)
+	}
 	return &TrumailAPI{
 		log:      log.WithField("service", "lookup"),
+		tinystat: tc,
 		hostname: hostname,
 		verify: verifier.NewVerifier(&http.Client{Timeout: time.Duration(timeoutSecs) * time.Second},
 			maxWorkerCount, hostname, sourceAddr),
@@ -76,18 +82,33 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 // encodeLookup encodes the passed response using the "format" and
 // "callback" parameters on the passed echo.Context
-func (t *TrumailAPI) encodeLookup(c echo.Context, code int, res interface{}) error {
+func (t *TrumailAPI) encodeLookup(c echo.Context, code int, lookup *verifier.Lookup) error {
+	// Send metrics of response
+	if t.tinystat != nil {
+		if code == http.StatusOK {
+			t.tinystat.CreateAction("success")
+		} else {
+			t.tinystat.CreateAction("error")
+		}
+	}
+
+	// Report the error to Sentry
+	if lookup.ErrorDetails != "" {
+		raven.CaptureError(errors.New(lookup.ErrorDetails), nil)
+	}
+
+	// Encode the in requested format
 	switch c.Param("format") {
 	case "json":
-		return c.JSON(code, res)
+		return c.JSON(code, lookup)
 	case "jsonp":
 		callback := c.QueryParam("callback")
 		if callback == "" {
 			return ErrInvalidCallback
 		}
-		return c.JSONP(code, callback, res)
+		return c.JSONP(code, callback, lookup)
 	case "xml":
-		return c.XML(code, res)
+		return c.XML(code, lookup)
 	default:
 		return ErrUnsupportedFormat
 	}

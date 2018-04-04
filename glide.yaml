@@ -1,6 +1,10 @@
 package: github.com/sdwolfe32/trumail
 import:
+- package: github.com/getsentry/raven-go
 - package: github.com/labstack/echo
+- package: github.com/sdwolfe32/tinystat
+  subpackages:
+  - client
 - package: github.com/sirupsen/logrus
 - package: golang.org/x/net
   subpackages:
