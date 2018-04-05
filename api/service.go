@@ -29,7 +29,6 @@ var (
 // TrumailAPI contains all dependencies for the Trumail API
 type TrumailAPI struct {
 	log         *logrus.Entry
-	tinystat    *tinystat.Client
 	herokuAppID string
 	herokuToken string
 	hostname    string
@@ -37,14 +36,9 @@ type TrumailAPI struct {
 }
 
 // NewTrumailAPI generates a new Trumail reference
-func NewTrumailAPI(log *logrus.Logger, tinystatAppID, tinystatToken, herokuAppID, herokuToken, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
-	var tc *tinystat.Client
-	if tinystatAppID != "" && tinystatToken != "" {
-		tc = tinystat.New(tinystatAppID, tinystatToken)
-	}
+func NewTrumailAPI(log *logrus.Logger, herokuAppID, herokuToken, hostname, sourceAddr string, timeoutSecs int) *TrumailAPI {
 	return &TrumailAPI{
 		log:         log.WithField("service", "lookup"),
-		tinystat:    tc,
 		herokuAppID: herokuAppID,
 		herokuToken: herokuToken,
 		hostname:    hostname,
@@ -94,12 +88,10 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 // "callback" parameters on the passed echo.Context
 func (t *TrumailAPI) encodeLookup(c echo.Context, code int, lookup *verifier.Lookup) error {
 	// Send metrics of response
-	if t.tinystat != nil {
-		if code == http.StatusOK {
-			t.tinystat.CreateAction("success")
-		} else {
-			t.tinystat.CreateAction("error")
-		}
+	if code == http.StatusOK {
+		tinystat.CreateAction("success")
+	} else {
+		tinystat.CreateAction("error")
 	}
 
 	// Report the error to Sentry

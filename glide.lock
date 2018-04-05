@@ -1,10 +1,15 @@
-hash: 0c3ae99b8c4ba0be44f32097b63eb773603c9437d545f03e2fd412b0cd18ef8b
-updated: 2018-04-04T11:21:26.563908687-07:00
+hash: f450b81f391ecd4540b3861429461c199eb5bd67895aeb5305eaf5cdd395f8d3
+updated: 2018-04-05T19:29:28.733424-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/getsentry/raven-go
-  version: 7562301a6763c9ac631b0a2011b4aa0e064e45d4
+  version: d1470f50d3a3a38533355a9fab7393e25a3b4226
+- name: github.com/heroku/x
+  version: a4225bbbfc8a517c9a95251aec1a8189443673b1
+  subpackages:
+  - hmetrics
+  - hmetrics/onload
 - name: github.com/labstack/echo
   version: 37f1a470efa8abb7e89ad221cb4b1cc36f7047bb
 - name: github.com/labstack/gommon
@@ -19,9 +24,10 @@ imports:
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/tinystat
-  version: c446f7fcdc88e5dfc0b98b43072077652cbbc914
+  version: ff41bc87f5d236662f8606875e32d3eabe4aec49
   subpackages:
   - client
+  - models
 - name: github.com/sirupsen/logrus
   version: 778f2e774c725116edbc3d039dc0dfc1cc62aae8
 - name: github.com/valyala/bytebufferpool
@@ -44,12 +50,12 @@ imports:
   subpackages:
   - errgroup
 - name: golang.org/x/sys
-  version: fcb792cfc275f85145c640d36af94b591eed4275
+  version: 1d206c9fa8975fb4cf00df1dc8bf3283dc24ba0e
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: ab6d1a1d69421dd32ae765488d04300186d73003
+  version: 2cb43934f0eece38629746959acc633cba083fe4
   subpackages:
   - secure/bidirule
   - transform

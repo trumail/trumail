@@ -1,6 +1,9 @@
 package: github.com/sdwolfe32/trumail
 import:
 - package: github.com/getsentry/raven-go
+- package: github.com/heroku/x
+  subpackages:
+  - hmetrics/onload
 - package: github.com/labstack/echo
 - package: github.com/sdwolfe32/tinystat
   subpackages:

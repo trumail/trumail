@@ -6,8 +6,6 @@ import (
 )
 
 var (
-	// RateLimit defines if the response on router should be throttled
-	RateLimit, _ = strconv.ParseBool(getEnv("RATE_LIMIT", "false"))
 	// SourceAddr defines the address used on verifier
 	SourceAddr = getEnv("SOURCE_ADDR", "admin@gmail.com")
 	// ServeWeb defines if the web static site should be served

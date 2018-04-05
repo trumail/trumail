@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
@@ -29,8 +30,7 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
-	s := api.NewTrumailAPI(logger, config.TinystatAppID,
-		config.TinystatToken, config.HerokuAppID, config.HerokuToken,
+	s := api.NewTrumailAPI(logger, config.HerokuAppID, config.HerokuToken,
 		hostname, config.SourceAddr, config.HTTPClientTimeout)
 
 	// Bind endpoints to router
