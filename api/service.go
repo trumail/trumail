@@ -89,7 +89,11 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 func (t *TrumailAPI) encodeLookup(c echo.Context, code int, lookup *verifier.Lookup) error {
 	// Send metrics of response
 	if code == http.StatusOK {
-		tinystat.CreateAction("success")
+		if lookup.Deliverable {
+			tinystat.CreateAction("deliverable")
+		} else {
+			tinystat.CreateAction("undeliverable")
+		}
 	} else {
 		tinystat.CreateAction("error")
 	}

@@ -1,5 +1,5 @@
 hash: f450b81f391ecd4540b3861429461c199eb5bd67895aeb5305eaf5cdd395f8d3
-updated: 2018-04-05T19:29:28.733424-07:00
+updated: 2018-04-05T21:28:23.863592-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -24,7 +24,7 @@ imports:
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/tinystat
-  version: ff41bc87f5d236662f8606875e32d3eabe4aec49
+  version: aeece051c7199ae4125b790d7509ff45eaa656f8
   subpackages:
   - client
   - models
