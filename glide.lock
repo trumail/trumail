@@ -1,5 +1,5 @@
 hash: f450b81f391ecd4540b3861429461c199eb5bd67895aeb5305eaf5cdd395f8d3
-updated: 2018-04-05T21:28:23.863592-07:00
+updated: 2018-04-06T09:25:49.440182966-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -24,7 +24,7 @@ imports:
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/tinystat
-  version: aeece051c7199ae4125b790d7509ff45eaa656f8
+  version: e7c5897215712e8df43a0f99e04fa8634194e0d9
   subpackages:
   - client
   - models
@@ -50,7 +50,7 @@ imports:
   subpackages:
   - errgroup
 - name: golang.org/x/sys
-  version: 1d206c9fa8975fb4cf00df1dc8bf3283dc24ba0e
+  version: 3b87a42e500a6dc65dae1a55d0b641295971163e
   subpackages:
   - unix
   - windows
