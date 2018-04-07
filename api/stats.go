@@ -11,16 +11,18 @@ import (
 // ErrStatsFailure is thrown when we fail to retrieve stats from Tinystat
 var ErrStatsFailure = echo.NewHTTPError(http.StatusInternalServerError, "Failed to retrieve statistics")
 
+// StatsSummary is an overall stats summary
+type StatsSummary struct {
+	Daily   Stats `json:"daily"`
+	Monthly Stats `json:"monthly"`
+}
+
 // Stats is a general summary of Trumail lookups
 type Stats struct {
-	Deliverable       int64 `json:"deliverable"`
-	DeliverableRate   int64 `json:"deliverableRate"`
-	Undeliverable     int64 `json:"undeliverable"`
-	UndeliverableRate int64 `json:"undeliverableRate"`
-	Error             int64 `json:"error"`
-	ErrorRate         int64 `json:"errorRate"`
-	SuccessRate       int64 `json:"successRate"`
-	Total             int64 `json:"total"`
+	Deliverable   int64 `json:"deliverable"`
+	Undeliverable int64 `json:"undeliverable"`
+	Errors        int64 `json:"errors"`
+	SuccessRate   int64 `json:"successRate"`
 }
 
 // Stats retrieves and returns general Trumail statistics
@@ -29,39 +31,41 @@ func (t *TrumailAPI) Stats(c echo.Context) error {
 	l.Debug("New Stats request received")
 
 	// Retrieve all stats from Tinystat
+	var s StatsSummary
 	var g errgroup.Group
-	var delCount, undelCount, errCount int64
-	g.Go(func() (err error) {
-		delCount, err = tinystat.ActionCount("deliverable", "730h")
-		return
-	})
-	g.Go(func() (err error) {
-		undelCount, err = tinystat.ActionCount("undeliverable", "730h")
-		return
-	})
-	g.Go(func() (err error) {
-		errCount, err = tinystat.ActionCount("error", "730h")
-		return
-	})
+	g.Go(func() error { return stats("24h", &s.Daily) })
+	g.Go(func() error { return stats("730h", &s.Monthly) })
 	if err := g.Wait(); err != nil {
 		l.WithError(err).Error("Failed to retrieve Tinystat statistics")
 		return ErrStatsFailure
 	}
 
-	// calculate the grand total and return a stats JSON response
-	total := delCount + undelCount + errCount
+	l.Debug("Returning Stats Response")
+	return c.JSON(http.StatusOK, s)
+}
 
-	l.Debug("Returning Email Lookup")
-	return c.JSON(http.StatusOK, &Stats{
-		Deliverable:       delCount,
-		DeliverableRate:   calcPercent(delCount, total),
-		Undeliverable:     undelCount,
-		UndeliverableRate: calcPercent(undelCount, total),
-		Error:             errCount,
-		ErrorRate:         calcPercent(errCount, total),
-		SuccessRate:       100 - calcPercent(errCount, total),
-		Total:             total,
+// stats populates the passed Stats reference with stats
+// for the previous passed duration
+func stats(duration string, s *Stats) error {
+	var g errgroup.Group
+	g.Go(func() (err error) {
+		s.Deliverable, err = tinystat.ActionCount("deliverable", duration)
+		return
 	})
+	g.Go(func() (err error) {
+		s.Undeliverable, err = tinystat.ActionCount("undeliverable", duration)
+		return
+	})
+	g.Go(func() (err error) {
+		s.Errors, err = tinystat.ActionCount("error", duration)
+		return
+	})
+	if err := g.Wait(); err != nil {
+		return err
+	}
+	total := s.Deliverable + s.Undeliverable + s.Errors
+	s.SuccessRate = 100 - calcPercent(s.Errors, total)
+	return nil
 }
 
 // calcPercent calculates a percentage given two int64

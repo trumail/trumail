@@ -1,51 +1,54 @@
 $('.ui.dropdown').dropdown();
 
-var deliverable = 0;
-var undeliverable = 0;
-var successRate = 0;
-
 function pollStats() {
     $.getJSON('/stats', function (data) {
-        // Set the initial values
-        if (deliverable == 0) {
-            deliverable = data.deliverable - 35;
-        }
-        if (undeliverable == 0) {
-            undeliverable = data.undeliverable - 5;
-        }
-        if (successRate == 0) {
-            successRate = data.successRate;
-        }
-
-        var options = { useEasing: false, useGrouping: true, separator: ',', decimal: '.'};
-        var count = new CountUp('deliverable', deliverable, data.deliverable, 0, 10, options);
-        if (!count.error) {
-            count.start();
-        } else {
-            console.error(count.error);
-        }
-        var count = new CountUp('undeliverable', undeliverable, data.undeliverable, 0, 10, options);
-        if (!count.error) {
-            count.start();
-        } else {
-            console.error(count.error);
-        }
-        options.suffix = '%';
-        var count = new CountUp('successRate', successRate, data.successRate, 0, 10, options);
-        if (!count.error) {
-            count.start();
-        } else {
-            console.error(count.error);
-        }
-
-        // Set the global variables
-        deliverable = data.deliverable;
-        undeliverable = data.undeliverable;
-        successRate = data.successRate;
+        // Set all countups
+        countup('dayDeliverable', data.daily.deliverable);
+        countup('dayUndeliverable', data.daily.undeliverable);
+        countup('daySuccessRate', data.daily.successRate, '', '%');
+        countup('monthDeliverable', data.monthly.deliverable);
+        countup('monthUndeliverable', data.monthly.undeliverable);
+        countup('monthSuccessRate', data.monthly.successRate, '', '%');
 
         // Perform this action every 10 seconds
         setTimeout(pollStats, 10000); // Poll stats every 10 seconds and re-apply to UI
     });
+}
+
+// countup animates the passed id with a new counted up value
+function countup(id, to, prefix, suffix) {
+    var from = $('#' + id).text(); // Retrieve the starting value
+    from = from.trim(); // Trim any whitespace
+    from = from.replace(/,/g, ''); // Remove all commas
+    if (from == '' || from > to) {
+        from = to;
+    }
+
+    // Configure countup options
+    var options = { 
+        useEasing: false, 
+        useGrouping: true, 
+        separator: ',', 
+        decimal: '.'
+    };
+
+    // Apply a prefix if one is passed
+    if (prefix != undefined && prefix != '') {
+        options.prefix = prefix;
+    }
+
+    // Apply a suffix if one is passed
+    if (suffix != undefined && suffix != '') {
+        options.suffix = suffix;
+    }
+
+    // Trigger the countup animation
+    var count = new CountUp(id, from, to, 0, 10, options);
+    if (!count.error) {
+        count.start();
+    } else {
+        console.error(count.error);
+    }
 }
 
 $(document).ready(function () {
