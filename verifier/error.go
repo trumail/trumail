@@ -93,7 +93,10 @@ func parseRCPTErr(err error) (error, error) {
 		case 503:
 			return ErrNeedMAILBeforeRCPT, err
 		case 550: // 550 is Mailbox Unavailable - usually undeliverable
-			if strings.Contains(errStr, "spamhaus") {
+			if strings.Contains(errStr, "spamhaus") ||
+				strings.Contains(errStr, "banned") ||
+				strings.Contains(errStr, "blocked") ||
+				strings.Contains(errStr, "denied") {
 				return ErrBlocked, err
 			}
 			return nil, nil

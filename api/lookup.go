@@ -41,8 +41,9 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	lookup := lookups[0]
 	l = l.WithField("lookup", lookup)
 
-	// If blocked by Spamhaus trigger a Heroku dyno restart
-	if strings.Contains(strings.ToLower(lookup.ErrorDetails), "spamhaus") {
+	// If blocked with spamhaus or banned trigger a Heroku dyno restart
+	if strings.Contains(strings.ToLower(lookup.ErrorDetails), "spamhaus") ||
+		strings.Contains(strings.ToLower(lookup.ErrorDetails), "banned") {
 		go restartDyno(t.herokuAppID, t.herokuToken)
 	}
 
