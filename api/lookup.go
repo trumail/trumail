@@ -12,11 +12,13 @@ import (
 )
 
 var (
-	// ErrValidationFailure indicates that there was an error while validating an email
-	ErrValidationFailure = echo.NewHTTPError(http.StatusInternalServerError, "Error validating email")
-	// ErrUnsupportedFormat indicates that the requestor has defined an unsupported response format
+	// ErrEmailParseFailure is thrown when we're unable to parse an email
+	ErrEmailParseFailure = echo.NewHTTPError(http.StatusBadRequest, verifier.ErrEmailParseFailure.Error())
+	// ErrVerificationFailure is thrown when there is error while validating an email
+	ErrVerificationFailure = echo.NewHTTPError(http.StatusInternalServerError, "Failed to perform email verification lookup")
+	// ErrUnsupportedFormat is thrown when the requestor has defined an unsupported response format
 	ErrUnsupportedFormat = echo.NewHTTPError(http.StatusBadRequest, "Unsupported format")
-	// ErrInvalidCallback indicates that the request is missing the callback queryparam
+	// ErrInvalidCallback is thrown when the request is missing the callback queryparam
 	ErrInvalidCallback = echo.NewHTTPError(http.StatusBadRequest, "Invalid callback query param provided")
 )
 
@@ -33,12 +35,13 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// Performs the full email validation
 	l.Debug("Performing new validation lookup")
-	lookups := t.verify.Verify(email)
-	if len(lookups) == 0 {
-		l.WithError(ErrValidationFailure).Error("Failed to validate email")
-		return ErrValidationFailure
+	lookup, err := t.verify.VerifySingle(email)
+	if err != nil {
+		if err == verifier.ErrEmailParseFailure {
+			return ErrEmailParseFailure
+		}
+		return ErrVerificationFailure
 	}
-	lookup := lookups[0]
 	l = l.WithField("lookup", lookup)
 
 	// If blocked with spamhaus or banned trigger a Heroku dyno restart

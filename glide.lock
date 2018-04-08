@@ -1,5 +1,5 @@
 hash: f450b81f391ecd4540b3861429461c199eb5bd67895aeb5305eaf5cdd395f8d3
-updated: 2018-04-06T09:25:49.440182966-07:00
+updated: 2018-04-07T17:29:06.374914-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -24,7 +24,7 @@ imports:
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/tinystat
-  version: e7c5897215712e8df43a0f99e04fa8634194e0d9
+  version: 6cb6f3c93069eb90e450ac2577f4039747baec43
   subpackages:
   - client
   - models
@@ -41,7 +41,7 @@ imports:
   - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
-  version: b3c676e531a6dc479fa1b35ac961c13f5e2b4d2e
+  version: 61147c48b25b599e5b561d2e9c4f3e1ef489ca41
   subpackages:
   - context
   - idna

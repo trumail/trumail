@@ -2,10 +2,14 @@ package verifier
 
 import (
 	"encoding/xml"
+	"errors"
 	"net/http"
 
 	"golang.org/x/sync/errgroup"
 )
+
+// ErrEmailParseFailure is thrown when a non-parsable email is passed
+var ErrEmailParseFailure = errors.New("Failed to parse email address")
 
 // Lookup contains all output data for an email validation Lookup
 type Lookup struct {
@@ -44,23 +48,25 @@ func NewVerifier(client *http.Client, maxWorkerCount int, hostname, sourceAddr s
 	}
 }
 
+// VerifySingle parses and verifies a single email address
+// returning an error if there's a problem when parsing
+func (v *Verifier) VerifySingle(email string) (*Lookup, error) {
+	address, err := ParseAddress(email)
+	if err != nil {
+		return nil, ErrEmailParseFailure
+	}
+	return v.Verify(address)[0], nil
+}
+
 // Verify performs all threaded operations involved with validating
 // one or more email addresses
-func (v *Verifier) Verify(emails ...string) []*Lookup {
+func (v *Verifier) Verify(addresses ...*Address) []*Lookup {
 	var totalLookups int
 	var lookups []*Lookup
 
 	// Organize all the addresses into a map of domain - address, address...
 	domainQueue := make(map[string][]*Address)
-	for _, email := range emails {
-		address, err := ParseAddress(email)
-		if err != nil {
-			lookups = append(lookups, &Lookup{
-				Address: email,
-				Error:   "Failed to parse email",
-			})
-			continue
-		}
+	for _, address := range addresses {
 		domainQueue[address.Domain] = append(domainQueue[address.Domain], address)
 		totalLookups++
 	}
@@ -94,7 +100,7 @@ func (v *Verifier) Verify(emails ...string) []*Lookup {
 	close(jobs)
 
 	// Pull all the results out of the Lookup results channel and return
-	for w := 1; w <= len(emails); w++ {
+	for w := 1; w <= len(addresses); w++ {
 		lookups = append(lookups, <-results)
 	}
 	return lookups
