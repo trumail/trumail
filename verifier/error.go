@@ -16,13 +16,14 @@ var (
 	ErrBlocked           = errors.New("Blocked by mail server")
 
 	// RCPT Errors
-	ErrTryAgainLater      = errors.New("Try again later")
-	ErrFullInbox          = errors.New("Recipient out of disk space")
-	ErrTooManyRCPT        = errors.New("Too many recipients")
-	ErrNoRelay            = errors.New("Not an open relay")
-	ErrMailboxBusy        = errors.New("Mailbox busy")
-	ErrNeedMAILBeforeRCPT = errors.New("Need MAIL before RCPT")
-	ErrRCPTHasMoved       = errors.New("Recipient has moved")
+	ErrTryAgainLater           = errors.New("Try again later")
+	ErrFullInbox               = errors.New("Recipient out of disk space")
+	ErrTooManyRCPT             = errors.New("Too many recipients")
+	ErrNoRelay                 = errors.New("Not an open relay")
+	ErrMailboxBusy             = errors.New("Mailbox busy")
+	ErrExceededMessagingLimits = errors.New("Messaging limits have been exceeded")
+	ErrNeedMAILBeforeRCPT      = errors.New("Need MAIL before RCPT")
+	ErrRCPTHasMoved            = errors.New("Recipient has moved")
 )
 
 // parseSTDErr parses a standard error in order to return a more user
@@ -35,15 +36,13 @@ func parseSTDErr(err error) (error, error) {
 
 	// Return a friendly error that
 	switch {
-	case strings.Contains(errStr, "block") ||
-		strings.Contains(errStr, "blacklist") ||
-		strings.Contains(errStr, "spamhaus"):
+	case insContains(errStr, "block", "blacklist", "spamhaus"):
 		return ErrBlocked, err
-	case strings.Contains(errStr, "timeout"):
+	case insContains(errStr, "timeout"):
 		return ErrTimeout, err
-	case strings.Contains(errStr, "no such host"):
+	case insContains(errStr, "no such host"):
 		return ErrNoSuchHost, err
-	case strings.Contains(errStr, "unavailable"):
+	case insContains(errStr, "unavailable"):
 		return ErrServerUnavailable, err
 	default:
 		return err, err
@@ -73,9 +72,10 @@ func parseRCPTErr(err error) (error, error) {
 	if status > 400 {
 		// Don't return an error if the error contains anything about the address
 		// being undeliverable
-		if strings.Contains(errStr, "undeliverable") ||
-			strings.Contains(errStr, "recipient invalid") ||
-			strings.Contains(errStr, "recipient rejected") {
+		if insContains(errStr,
+			"undeliverable",
+			"recipient invalid",
+			"recipient rejected") {
 			return nil, nil
 		}
 
@@ -84,19 +84,23 @@ func parseRCPTErr(err error) (error, error) {
 			return ErrTryAgainLater, err
 		case 450:
 			return ErrMailboxBusy, err
+		case 451:
+			return ErrExceededMessagingLimits, err
 		case 452:
-			if strings.Contains(errStr, "full") ||
-				strings.Contains(errStr, "space") {
+			if insContains(errStr,
+				"full",
+				"space") {
 				return ErrFullInbox, err
 			}
 			return ErrTooManyRCPT, err
 		case 503:
 			return ErrNeedMAILBeforeRCPT, err
 		case 550: // 550 is Mailbox Unavailable - usually undeliverable
-			if strings.Contains(errStr, "spamhaus") ||
-				strings.Contains(errStr, "banned") ||
-				strings.Contains(errStr, "blocked") ||
-				strings.Contains(errStr, "denied") {
+			if insContains(errStr,
+				"spamhaus",
+				"banned",
+				"blocked",
+				"denied") {
 				return ErrBlocked, err
 			}
 			return nil, nil
@@ -111,6 +115,20 @@ func parseRCPTErr(err error) (error, error) {
 		}
 	}
 	return nil, nil
+}
+
+// insContains returns true if any of the substrings
+// are found in the passed string. This method of checking
+// contains is case insensitive
+func insContains(str string, substr ...string) bool {
+	lowStr := strings.ToLower(str)
+	for _, sub := range substr {
+		lowSub := strings.ToLower(sub)
+		if strings.Contains(lowStr, lowSub) {
+			return true
+		}
+	}
+	return false
 }
 
 // errStr returns the string representation of an error, returning
