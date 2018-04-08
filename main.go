@@ -30,8 +30,11 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
-	s := api.NewTrumailAPI(logger, config.HerokuAppID, config.HerokuToken,
-		hostname, config.SourceAddr, config.HTTPClientTimeout)
+	s := api.NewTrumailAPI(logger, hostname,
+		config.SourceAddr, config.HTTPClientTimeout)
+	if err := s.RestartIfBlacklisted(""); err != nil {
+		l.WithError(err).Error("Failed to perform restart if blacklisted")
+	}
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
@@ -47,7 +50,7 @@ func main() {
 
 	// Listen and Serve
 	l.WithField("port", config.Port).Info("Listening and Serving")
-	e.Logger.Fatal(e.Start(":" + config.Port))
+	l.Fatal(e.Start(":" + config.Port))
 }
 
 // retrievePTR attempts to retrieve the PTR record for the IP

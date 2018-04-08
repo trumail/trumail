@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
@@ -44,10 +43,11 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	}
 	l = l.WithField("lookup", lookup)
 
-	// If blocked with spamhaus or banned trigger a Heroku dyno restart
-	if strings.Contains(strings.ToLower(lookup.ErrorDetails), "spamhaus") ||
-		strings.Contains(strings.ToLower(lookup.ErrorDetails), "banned") {
-		go restartDyno(t.herokuAppID, t.herokuToken)
+	// If blocked by Spamhaus trigger a Heroku dyno restart
+	if lookup.Error == verifier.ErrBlocked.Error() {
+		if err := t.RestartIfBlacklisted(lookup.ErrorDetails); err != nil {
+			l.WithError(err).Error("Failed to perform restart if blacklisted")
+		}
 	}
 
 	// Return an error response code if there's an error
