@@ -7,6 +7,7 @@ import (
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	tinystat "github.com/sdwolfe32/tinystat/client"
+	"github.com/sdwolfe32/trumail/heroku"
 	"github.com/sdwolfe32/trumail/verifier"
 )
 
@@ -45,8 +46,10 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// If blocked by Spamhaus trigger a Heroku dyno restart
 	if lookup.Error == verifier.ErrBlocked.Error() {
-		if err := t.RestartIfBlacklisted(lookup.ErrorDetails); err != nil {
-			l.WithError(err).Error("Failed to perform restart if blacklisted")
+		// Restart Dyno if officially confirmed blacklisted
+		if t.verify.Blacklisted() {
+			l.Info("Confirmed Blacklisted! - Restarting Dyno")
+			go heroku.RestartDyno()
 		}
 	}
 

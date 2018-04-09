@@ -11,6 +11,8 @@ import (
 	"github.com/labstack/echo"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
+	"github.com/sdwolfe32/trumail/heroku"
+	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,11 +32,14 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
-	s := api.NewTrumailAPI(logger, hostname,
-		config.SourceAddr, config.HTTPClientTimeout)
-	if err := s.RestartIfBlacklisted(""); err != nil {
-		l.WithError(err).Error("Failed to perform restart if blacklisted")
+	v := verifier.NewVerifier(config.HTTPClientTimeout,
+		config.MaxWorkerCount, hostname, config.SourceAddr)
+	// Restart Dyno if officially confirmed blacklisted
+	if v.Blacklisted() {
+		l.Info("Confirmed Blacklisted! - Restarting Dyno")
+		go heroku.RestartDyno()
 	}
+	s := api.NewTrumailAPI(logger, v)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")

@@ -36,7 +36,12 @@ func parseSTDErr(err error) (error, error) {
 
 	// Return a friendly error that
 	switch {
-	case insContains(errStr, "block", "blacklist", "spamhaus"):
+	case insContains(errStr,
+		"spamhaus",
+		"proofpoint",
+		"banned",
+		"blocked",
+		"denied"):
 		return ErrBlocked, err
 	case insContains(errStr, "timeout"):
 		return ErrTimeout, err
@@ -98,6 +103,7 @@ func parseRCPTErr(err error) (error, error) {
 		case 550: // 550 is Mailbox Unavailable - usually undeliverable
 			if insContains(errStr,
 				"spamhaus",
+				"proofpoint",
 				"banned",
 				"blocked",
 				"denied") {

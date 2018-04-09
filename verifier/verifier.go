@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"net/http"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -38,7 +39,8 @@ type Verifier struct {
 }
 
 // NewVerifier generates a new AddressVerifier reference
-func NewVerifier(client *http.Client, maxWorkerCount int, hostname, sourceAddr string) *Verifier {
+func NewVerifier(timeoutSeconds int, maxWorkerCount int, hostname, sourceAddr string) *Verifier {
+	client := &http.Client{Timeout: time.Duration(timeoutSeconds) * time.Second}
 	return &Verifier{
 		client:         client,
 		maxWorkerCount: maxWorkerCount,
