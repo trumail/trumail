@@ -26,7 +26,7 @@ import (
 )
 
 func main() {
-  v := trumail.NewVerifier(20, "YOUR_HOSTNAME.COM", "YOUR_EMAIL@DOMAIN.COM")
+  v := trumail.NewVerifier(20, 20, "YOUR_HOSTNAME.COM", "YOUR_EMAIL@DOMAIN.COM")
   
   // Validate a single address
   log.Println(v.Verify("test@gmail.com"))

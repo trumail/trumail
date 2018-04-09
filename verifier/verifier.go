@@ -39,7 +39,7 @@ type Verifier struct {
 }
 
 // NewVerifier generates a new AddressVerifier reference
-func NewVerifier(timeoutSeconds int, maxWorkerCount int, hostname, sourceAddr string) *Verifier {
+func NewVerifier(timeoutSeconds, maxWorkerCount int, hostname, sourceAddr string) *Verifier {
 	client := &http.Client{Timeout: time.Duration(timeoutSeconds) * time.Second}
 	return &Verifier{
 		client:         client,
