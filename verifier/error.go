@@ -22,6 +22,7 @@ var (
 	ErrNoRelay                 = errors.New("Not an open relay")
 	ErrMailboxBusy             = errors.New("Mailbox busy")
 	ErrExceededMessagingLimits = errors.New("Messaging limits have been exceeded")
+	ErrNotAllowed              = errors.New("Not Allowed")
 	ErrNeedMAILBeforeRCPT      = errors.New("Need MAIL before RCPT")
 	ErrRCPTHasMoved            = errors.New("Recipient has moved")
 )
@@ -79,6 +80,7 @@ func parseRCPTErr(err error) (error, error) {
 		// being undeliverable
 		if insContains(errStr,
 			"undeliverable",
+			"does not exist",
 			"recipient invalid",
 			"recipient rejected") {
 			return nil, nil
@@ -116,6 +118,8 @@ func parseRCPTErr(err error) (error, error) {
 			return ErrFullInbox, err
 		case 553:
 			return ErrNoRelay, err
+		case 554:
+			return ErrNotAllowed, err
 		default:
 			return parseSTDErr(err)
 		}
