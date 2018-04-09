@@ -1,28 +1,30 @@
 $('.ui.dropdown').dropdown();
 
+var timeout = 10000;
 var oldStats = {daily:{},monthly:{}};
 
 function pollStats() {
     $.getJSON('/stats', function (newStats) {
         // Set all countups
-        countup('dayDeliverable', oldStats.daily.deliverable, newStats.daily.deliverable);
-        countup('dayUndeliverable', oldStats.daily.undeliverable, newStats.daily.undeliverable);
-        countup('daySuccessRate', oldStats.daily.successRate, newStats.daily.successRate, '', '%');
-        countup('monthDeliverable', oldStats.monthly.deliverable, newStats.monthly.deliverable);
-        countup('monthUndeliverable', oldStats.monthly.undeliverable, newStats.monthly.undeliverable);
-        countup('monthSuccessRate', oldStats.monthly.successRate, newStats.monthly.successRate, '', '%');
+        countup('dayDeliverable', 24, oldStats.daily.deliverable, newStats.daily.deliverable);
+        countup('dayUndeliverable', 24, oldStats.daily.undeliverable, newStats.daily.undeliverable);
+        countup('daySuccessRate', 24, oldStats.daily.successRate, newStats.daily.successRate, '', '%');
+        countup('monthDeliverable', 720, oldStats.monthly.deliverable, newStats.monthly.deliverable);
+        countup('monthUndeliverable', 720, oldStats.monthly.undeliverable, newStats.monthly.undeliverable);
+        countup('monthSuccessRate', 720, oldStats.monthly.successRate, newStats.monthly.successRate, '', '%');
         oldStats = newStats; // Update the oldstats
 
         // Perform this action every 10 seconds
-        setTimeout(pollStats, 10000); // Poll stats every 10 seconds and re-apply to UI
+        setTimeout(pollStats, timeout); // Poll stats every 10 seconds and re-apply to UI
     });
 }
 
 // countup animates the passed id with a new counted up value
-function countup(id, from, to, prefix, suffix) {
-    // if from isn't set yet, set it to the initial to value
+function countup(id, hours, from, to, prefix, suffix) {
+    // if from isn't set yet, calculate a rough initial value 
     if (from == undefined) {
-        from = to
+        var rps = ((to/hours)/60)/60; // Average requests per second
+        from = to-(rps*(timeout/1000)); // Subtract 10 seconds worth
     }
 
     // Configure countup options
