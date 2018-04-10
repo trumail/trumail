@@ -3,7 +3,6 @@ package verifier
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"strings"
 )
@@ -91,7 +90,6 @@ func (v *Verifier) get(url string) ([]byte, error) {
 	// Perform the GET request on the passed URL
 	resp, err := v.client.Get(url)
 	if err != nil {
-		log.Fatal("Failed to retrieve IP from api.ipify.org")
 		return nil, err
 	}
 	defer resp.Body.Close()

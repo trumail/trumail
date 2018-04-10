@@ -20,7 +20,7 @@ type Deliverabler struct {
 	domain, host, sourceAddr string
 }
 
-// NewDeliverabler generates a new Deliverabler
+// NewDeliverabler generates a new Deliverabler reference
 func NewDeliverabler(domain, host, sourceAddr string, timeout time.Duration) (*Deliverabler, error) {
 	// Convert any internationalized domain names to ascii
 	asciiDomain, err := idna.ToASCII(domain)

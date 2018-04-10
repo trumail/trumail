@@ -40,7 +40,7 @@ func NewDisposabler(client *http.Client) *Disposabler {
 	}
 
 	// Retrieves new disposable lists every hour
-	go d.domainFarmer()
+	go d.farmDomains()
 	return d
 }
 
@@ -52,21 +52,14 @@ func (d *Disposabler) IsDisposable(domain string) bool {
 	return d.disposable[domain]
 }
 
-// domainFarmer retrieves new disposable domains every set interval
-func (d *Disposabler) domainFarmer() error {
+// farmDomains retrieves new disposable domains every set interval
+func (d *Disposabler) farmDomains() error {
 	for {
 		for _, url := range lists {
 			// Performs the request for the domain list
-			resp, err := d.client.Get(url)
+			body, err := d.get(url)
 			if err != nil {
-				return err
-			}
-			defer resp.Body.Close()
-
-			// Reads the body
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return err
+				continue
 			}
 
 			// Adds every domain to our disposable domain map
@@ -77,7 +70,7 @@ func (d *Disposabler) domainFarmer() error {
 
 				var domains [][]string
 				if err := json.Unmarshal([]byte(res), &domains); err != nil {
-					return err
+					continue
 				}
 
 				for _, group := range domains {
@@ -94,4 +87,17 @@ func (d *Disposabler) domainFarmer() error {
 		}
 		time.Sleep(updateInterval)
 	}
+}
+
+// get performs a get request using the passed URL
+func (d *Disposabler) get(url string) ([]byte, error) {
+	// Perform the GET request on the passed URL
+	resp, err := d.client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Decode and return the bytes
+	return ioutil.ReadAll(resp.Body)
 }
