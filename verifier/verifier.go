@@ -124,8 +124,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 		if err != nil {
 			basicErr, detailErr = parseSTDErr(err)
 			if basicErr == ErrNoSuchHost {
-				basicErr = nil
-				detailErr = nil
+				basicErr, detailErr = nil, nil
 				hostExists = false
 			}
 		}
@@ -133,7 +132,7 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 		// Retrieves the catchall status if there's a deliverabler and we don't yet
 		// have any catchall status
 		if deliverabler != nil {
-			if deliverabler.HasCatchAll(j[0].Domain, 5) {
+			if deliverabler.HasCatchAll(j[0].Domain, 3) {
 				catchAll = true
 			}
 		}
@@ -156,9 +155,12 @@ func (v *Verifier) worker(jobs <-chan []*Address, results chan<- *Lookup) {
 						}
 						basicErr, detailErr = parseRCPTErr(err)
 						if basicErr == ErrNoSuchHost {
-							basicErr = nil
-							detailErr = nil
+							basicErr, detailErr = nil, nil
 							hostExists = false
+						}
+						if basicErr == ErrFullInbox {
+							basicErr, detailErr = nil, nil
+							fullInbox = true
 						}
 					} else {
 						deliverable = true

@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net"
 	"net/smtp"
-	"strings"
 	"time"
 
 	"golang.org/x/net/idna"
@@ -20,8 +19,36 @@ type Deliverabler struct {
 	domain, host, sourceAddr string
 }
 
-// NewDeliverabler generates a new Deliverabler reference
+// NewDeliverabler generates a new Deliverabler reference using a timeout
 func NewDeliverabler(domain, host, sourceAddr string, timeout time.Duration) (*Deliverabler, error) {
+	rChan := make(chan interface{}, 1)
+
+	go func() {
+		d, err := newDeliverabler(domain, host, sourceAddr)
+		if err != nil {
+			rChan <- err
+		} else {
+			rChan <- d
+		}
+	}()
+
+	select {
+	case d := <-rChan:
+		if del, ok := d.(*Deliverabler); ok {
+			del.timeout = timeout
+			return del, nil
+		}
+		if err, ok := d.(error); ok {
+			return nil, err
+		}
+		return nil, errors.New("Unexpected response from deliverabler")
+	case <-time.After(timeout):
+		return nil, errors.New("Timeout connecting to mail-exchanger")
+	}
+}
+
+// NewDeliverabler generates a new Deliverabler reference
+func newDeliverabler(domain, host, sourceAddr string) (*Deliverabler, error) {
 	// Convert any internationalized domain names to ascii
 	asciiDomain, err := idna.ToASCII(domain)
 	if err != nil {
@@ -39,8 +66,8 @@ func NewDeliverabler(domain, host, sourceAddr string, timeout time.Duration) (*D
 		return nil, errors.New("No MX records found")
 	}
 
-	// Dial the SMTP server with the provided timeout
-	client, err := dialSMTPTimeout(records[0].Host+":25", timeout)
+	// Dial the SMTP with a 10 second timeout
+	client, err := smtp.Dial(records[0].Host + ":25")
 	if err != nil {
 		return nil, err
 	}
@@ -56,33 +83,10 @@ func NewDeliverabler(domain, host, sourceAddr string, timeout time.Duration) (*D
 	}
 	return &Deliverabler{
 		client:     client,
-		timeout:    timeout,
 		domain:     domain,
 		host:       host,
 		sourceAddr: sourceAddr,
 	}, nil
-}
-
-// dialSMTPTimeout is a timeout wrapper for smtp.Dial. It attempts to dial an
-// SMTP server and fails with a timeout if the passed timeout is reached while
-// attempting to establish a new connection
-func dialSMTPTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
-	ch := make(chan *smtp.Client, 1) // Channel holding the new smtp.Client
-
-	// Dial the new smtp connection
-	go func() {
-		if client, err := smtp.Dial(addr); err == nil {
-			ch <- client
-		}
-	}()
-
-	// Retrieve the smtp client from our client channel or timeout
-	select {
-	case c := <-ch:
-		return c, nil
-	case <-time.After(timeout):
-		return nil, errors.New("Timeout connecting to mail-exchanger")
-	}
 }
 
 // IsDeliverable takes an email address and performs the operation of adding
@@ -116,26 +120,6 @@ func (d *Deliverabler) HasCatchAll(domain string, retry int) bool {
 func (d *Deliverabler) Close() {
 	d.client.Quit()
 	d.client.Close()
-}
-
-// shouldReconnect determines whether or not we should retry connecting to the
-// smtp server based on the response received
-func shouldReconnect(err error) bool {
-	if err == nil {
-		return false
-	}
-	errStr := strings.ToLower(err.Error())
-	if strings.Contains(errStr, "i/o timeout") ||
-		strings.Contains(errStr, "broken pipe") ||
-		strings.Contains(errStr, "use of closed network connection") ||
-		strings.Contains(errStr, "connection reset by peer") ||
-		strings.Contains(errStr, "multiple regions") ||
-		strings.Contains(errStr, "server busy") ||
-		strings.Contains(errStr, "EOF") ||
-		err == ErrTooManyRCPT || err == ErrTryAgainLater {
-		return true
-	}
-	return false
 }
 
 // randomEmail generates a random email address using the domain passed. Used

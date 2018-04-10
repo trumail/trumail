@@ -27,6 +27,28 @@ var (
 	ErrRCPTHasMoved            = errors.New("Recipient has moved")
 )
 
+// shouldReconnect determines whether or not we should retry connecting to the
+// smtp server based on the response received
+func shouldReconnect(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := strings.ToLower(err.Error())
+	if insContains(errStr,
+		"i/o timeout",
+		"broken pipe",
+		"use of closed network connection",
+		"connection reset by peer",
+		"multiple regions",
+		"server busy",
+		"eof") ||
+		err == ErrTooManyRCPT ||
+		err == ErrTryAgainLater {
+		return true
+	}
+	return false
+}
+
 // parseSTDErr parses a standard error in order to return a more user
 // friendly version of the error
 func parseSTDErr(err error) (error, error) {
@@ -81,8 +103,10 @@ func parseRCPTErr(err error) (error, error) {
 		if insContains(errStr,
 			"undeliverable",
 			"does not exist",
+			"invalid address",
 			"recipient invalid",
-			"recipient rejected") {
+			"recipient rejected",
+			"no mailbox") {
 			return nil, nil
 		}
 

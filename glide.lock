@@ -1,5 +1,5 @@
 hash: f450b81f391ecd4540b3861429461c199eb5bd67895aeb5305eaf5cdd395f8d3
-updated: 2018-04-08T18:46:01.204885-07:00
+updated: 2018-04-09T20:17:32.188409-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -35,7 +35,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: b2aa35443fbc700ab74c586ae79b81c171851023
+  version: beb2a9779c3b677077c41673505f150149fce895
   subpackages:
   - acme
   - acme/autocert
