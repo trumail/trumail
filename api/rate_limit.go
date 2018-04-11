@@ -1,4 +1,4 @@
-package middleware
+package api
 
 import (
 	"net/http"
@@ -11,10 +11,11 @@ import (
 var (
 	// DefaultRateLimiter is a default rate-limiting middleware
 	// that allows up to 1000 requests every 24 hours
-	DefaultRateLimiter = NewRateLimiter(100, time.Hour*24)
+	DefaultRateLimiter = NewRateLimiter(500, time.Hour*12)
 	// ErrRateLimitExceeded is thrown when an IP exceeds the
 	// specified rate-limit
-	ErrRateLimitExceeded = echo.NewHTTPError(http.StatusTooManyRequests, "Rate limit exceeded - If you'd like a higher request volume please contact steven@swolfe.me")
+	ErrRateLimitExceeded = echo.NewHTTPError(http.StatusTooManyRequests,
+		"Rate limit exceeded - If you'd like a higher request volume please contact steven@swolfe.me")
 )
 
 // RateLimit uses the DefaultRateLimiter to rate limit requests
@@ -30,15 +31,15 @@ type RateLimiter struct {
 	ipMap    *sync.Map     // IP-Address -> ReqData
 }
 
-// NewRateLimiter generates a new RateLimiter reference
-func NewRateLimiter(max int64, interval time.Duration) *RateLimiter {
-	return &RateLimiter{max: max, interval: interval, ipMap: &sync.Map{}}
-}
-
 // ReqData contains recent request data
 type ReqData struct {
 	start time.Time
 	count int64
+}
+
+// NewRateLimiter generates a new RateLimiter reference
+func NewRateLimiter(max int64, interval time.Duration) *RateLimiter {
+	return &RateLimiter{max: max, interval: interval, ipMap: &sync.Map{}}
 }
 
 // NewReqData generates a new ReqData reference with the
@@ -52,33 +53,38 @@ func (f *ReqData) Count() { f.count++ }
 // many requests in the defined period of time.
 func (r *RateLimiter) Do(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Extract the IP from the request
-		ip := c.RealIP()
+		ip := c.RealIP()    // The requestors IP
+		rd := r.reqData(ip) // The requestors ReqData
 
-		// Load an existing or new ReqData interface
-		rfIface, ok := r.ipMap.Load(ip)
-		if !ok {
-			newRF := NewReqData()
-			r.ipMap.Store(ip, newRF)
-			rfIface = newRF
+		// Whether the ReqData is expired
+		valid := rd.start.After(time.Now().Add(-1 * r.interval))
+
+		// If the valid count for this timeframe exceeds the max
+		if valid && rd.count >= r.max {
+			return ErrRateLimitExceeded
 		}
 
-		// Type assert the ReqData
-		rf := rfIface.(*ReqData)
-
-		// If the IPMeta is valid for this time inteval AND
-		// If The count for this timeframe exceeds the max
-		if rf.start.After(time.Now().Add(-1 * r.interval)) {
-			if rf.count >= r.max {
-				return ErrRateLimitExceeded
-			}
-		} else {
-			// Otherwise refresh the freq data for this interval
+		// If the IPMeta is invalid (expired), store a new one
+		if !valid {
 			r.ipMap.Store(ip, NewReqData())
 		}
 
 		// Count a new request and return
-		rf.Count()
+		rd.Count()
 		return next(c)
 	}
+}
+
+// reqData returns ReqData found in the syncmap keyed
+// by the requestors IP address
+func (r *RateLimiter) reqData(ip string) *ReqData {
+	// Load an existing or new ReqData interface
+	if rdIface, ok := r.ipMap.Load(ip); ok {
+		return rdIface.(*ReqData)
+	}
+
+	// Create a new ReqData and return it
+	newRD := NewReqData()
+	r.ipMap.Store(ip, newRD)
+	return newRD
 }

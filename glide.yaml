@@ -1,20 +1,4 @@
 package: github.com/sdwolfe32/trumail
 import:
-- package: github.com/getsentry/raven-go
-- package: github.com/heroku/x
-  subpackages:
-  - hmetrics/onload
 - package: github.com/labstack/echo
-- package: github.com/sdwolfe32/tinystat
-  subpackages:
-  - client
-- package: github.com/sirupsen/logrus
-- package: golang.org/x/net
-  subpackages:
-  - idna
-- package: golang.org/x/sync
-  subpackages:
-  - errgroup
-testImport:
-- package: gopkg.in/check.v1
-- package: gopkg.in/h2non/gock.v1
+  version: 37f1a470efa8abb7e89ad221cb4b1cc36f7047bb

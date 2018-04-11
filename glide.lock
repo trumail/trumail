@@ -1,5 +1,5 @@
-hash: f450b81f391ecd4540b3861429461c199eb5bd67895aeb5305eaf5cdd395f8d3
-updated: 2018-04-09T20:17:32.188409-07:00
+hash: 026c84c3e1330814fc2428e03a9c94ee89f9b2d9c73847e2bab9c63d5cb98623
+updated: 2018-04-11T01:05:17.762438-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -35,7 +35,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: beb2a9779c3b677077c41673505f150149fce895
+  version: f70185d77e8278766928032ee1355e3da47e7181
   subpackages:
   - acme
   - acme/autocert
@@ -55,7 +55,7 @@ imports:
   - unix
   - windows
 - name: golang.org/x/text
-  version: 2cb43934f0eece38629746959acc633cba083fe4
+  version: 7922cc490dd5a7dbaa7fd5d6196b49db59ac042f
   subpackages:
   - secure/bidirule
   - transform
