@@ -10,6 +10,7 @@ import (
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
 	"github.com/sdwolfe32/trumail/api"
+	"github.com/sdwolfe32/trumail/api/middleware"
 	"github.com/sdwolfe32/trumail/config"
 	"github.com/sdwolfe32/trumail/heroku"
 	"github.com/sdwolfe32/trumail/verifier"
@@ -43,7 +44,7 @@ func main() {
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
-	e.GET("/:format/:email", s.Lookup)
+	e.GET("/:format/:email", s.Lookup, middleware.RateLimit)
 	e.GET("/stats", s.Stats)
 
 	// Host static demo pages if configured to do so
