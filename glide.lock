@@ -1,5 +1,5 @@
 hash: 026c84c3e1330814fc2428e03a9c94ee89f9b2d9c73847e2bab9c63d5cb98623
-updated: 2018-04-11T01:05:17.762438-07:00
+updated: 2018-04-11T02:05:20.533982-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b

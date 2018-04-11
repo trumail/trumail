@@ -13,8 +13,5 @@ type TrumailAPI struct {
 
 // NewTrumailAPI generates a new, fully populated Trumail reference
 func NewTrumailAPI(log *logrus.Logger, v *verifier.Verifier) *TrumailAPI {
-	return &TrumailAPI{
-		log:    log.WithField("service", "api"),
-		verify: v,
-	}
+	return &TrumailAPI{log: log.WithField("service", "api"), verify: v}
 }

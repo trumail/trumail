@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
@@ -39,12 +40,14 @@ func main() {
 		l.Info("Confirmed Blacklisted! - Restarting Dyno")
 		go heroku.RestartDyno()
 	}
+	r := api.NewRateLimiter(500, time.Hour*12)
 	s := api.NewTrumailAPI(logger, v)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
-	e.GET("/:format/:email", s.Lookup, api.RateLimit)
+	e.GET("/:format/:email", s.Lookup, r.RateLimit)
 	e.GET("/stats", s.Stats)
+	e.GET("/limit-status", r.LimitStatus)
 
 	// Host static demo pages if configured to do so
 	if config.ServeWeb {

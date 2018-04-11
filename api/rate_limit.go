@@ -9,19 +9,11 @@ import (
 )
 
 var (
-	// DefaultRateLimiter is a default rate-limiting middleware
-	// that allows up to 1000 requests every 24 hours
-	DefaultRateLimiter = NewRateLimiter(500, time.Hour*12)
 	// ErrRateLimitExceeded is thrown when an IP exceeds the
 	// specified rate-limit
 	ErrRateLimitExceeded = echo.NewHTTPError(http.StatusTooManyRequests,
 		"Rate limit exceeded - If you'd like a higher request volume please contact steven@swolfe.me")
 )
-
-// RateLimit uses the DefaultRateLimiter to rate limit requests
-func RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
-	return DefaultRateLimiter.Do(next)
-}
 
 // RateLimiter is a middleware for limiting request
 // speed to a maximum over a set interval
@@ -35,6 +27,14 @@ type RateLimiter struct {
 type ReqData struct {
 	start time.Time
 	count int64
+}
+
+// LimitStatus is returned when a request is made for an
+// IPs current rate limit standing
+type LimitStatus struct {
+	Max      int64         `json:"max"`
+	Interval time.Duration `json:"interval"`
+	Current  int64         `json:"current"`
 }
 
 // NewRateLimiter generates a new RateLimiter reference
@@ -51,7 +51,7 @@ func (f *ReqData) Count() { f.count++ }
 
 // Do returns an error if the ip passed has performed too
 // many requests in the defined period of time.
-func (r *RateLimiter) Do(next echo.HandlerFunc) echo.HandlerFunc {
+func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ip := c.RealIP()    // The requestors IP
 		rd := r.reqData(ip) // The requestors ReqData
@@ -73,6 +73,19 @@ func (r *RateLimiter) Do(next echo.HandlerFunc) echo.HandlerFunc {
 		rd.Count()
 		return next(c)
 	}
+}
+
+// LimitStatus retrieves and returns general Trumail statistics
+func (r *RateLimiter) LimitStatus(c echo.Context) error {
+	ip := c.RealIP()    // The requestors IP
+	rd := r.reqData(ip) // The requestors ReqData
+
+	// Return the current rate limit standing
+	return c.JSON(http.StatusOK, &LimitStatus{
+		Max:      r.max,
+		Interval: r.interval,
+		Current:  rd.count,
+	})
 }
 
 // reqData returns ReqData found in the syncmap keyed

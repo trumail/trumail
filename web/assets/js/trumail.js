@@ -54,8 +54,17 @@ function countup(id, hours, from, to, prefix, suffix) {
     }
 }
 
+// sets the limit status fields
+function getLimitStatus() {
+    $.getJSON('/limit-status', function (status) {
+        var status = status.max-status.current + " verifications remaining - " + status.current + "/" + status.max + " per " + status.interval/3600000000000 + " hours";
+        document.getElementById("limit-status").innerHTML = status;
+    }); 
+}
+
 $(document).ready(function () {
     pollStats();
+    getLimitStatus();
     $('#test-form').on('submit', function (e) {
         e.preventDefault();
         var format = document.getElementsByName('test-format')[0].value;
@@ -89,6 +98,7 @@ $(document).ready(function () {
                 transition: 'flip vertical'
             }).modal('show');
             $('#test-button').removeClass('loading');
+            getLimitStatus();
         }, 'text');
     });
 });
