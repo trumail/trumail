@@ -1,7 +1,7 @@
 html,
 body {
     background-color: #1f2128;
-    color: #6f7b88;
+    color: #768696;
     line-height: 1.6;
     font-family: 'Open Sans', sans-serif;
     font-weight: 400;
@@ -73,6 +73,13 @@ a:hover {
     font-weight: 300;
     font-size: 30px;
     padding-bottom: 20px;
+}
+
+.banner{
+    background-color: #2185d0;
+    color: #efefef;
+    text-align: center;
+    padding: 10px 0;
 }
 
 .mail-pattern {
