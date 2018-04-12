@@ -40,14 +40,19 @@ func main() {
 		l.Info("Confirmed Blacklisted! - Restarting Dyno")
 		go heroku.RestartDyno()
 	}
-	r := api.NewRateLimiter(500, time.Hour*12)
 	s := api.NewTrumailAPI(logger, v)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
-	e.GET("/:format/:email", s.Lookup, r.RateLimit)
+	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
+		r := api.NewRateLimiter(config.RateLimitMax,
+			time.Hour*time.Duration(config.RateLimitHours))
+		e.GET("/:format/:email", s.Lookup, r.RateLimit)
+		e.GET("/limit-status", r.LimitStatus)
+	} else {
+		e.GET("/:format/:email", s.Lookup)
+	}
 	e.GET("/stats", s.Stats)
-	e.GET("/limit-status", r.LimitStatus)
 
 	// Host static demo pages if configured to do so
 	if config.ServeWeb {

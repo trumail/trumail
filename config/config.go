@@ -19,6 +19,11 @@ var (
 	MaxWorkerCount, _ = strconv.Atoi(getEnv("MAX_WORKER_COUNT", "20"))
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
 	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "20"))
+	// RateLimitMax is the maximum number of requests allowed in the
+	// specified interval
+	RateLimitMax, _ = strconv.ParseInt(getEnv("RATE_LIMIT_MAX", ""), 10, 64)
+	// RateLimitHours is the interval in which requests will be rate limited
+	RateLimitHours, _ = strconv.ParseInt(getEnv("RATE_LIMIT_HOURS", ""), 10, 64)
 )
 
 // getEnv retrieves variables from the environment and falls back
