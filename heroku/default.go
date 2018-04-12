@@ -6,7 +6,7 @@ import (
 
 // DefaultClient is the default client that will be used for
 // all Heroku requests
-var DefaultClient = NewClient(os.Getenv("HEROKU_APP_ID"), os.Getenv("HEROKU_TOKEN"))
+var DefaultClient = NewClient(os.Getenv("HEROKU_APP_ID"), os.Getenv("DYNO"), os.Getenv("HEROKU_TOKEN"))
 
 // RestartDyno retarts the Dyno defined in the DefaultClient
 func RestartDyno() error {

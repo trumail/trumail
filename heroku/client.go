@@ -11,23 +11,23 @@ const baseURL = "https://api.heroku.com"
 
 // Client contains credentials needed to communicate with the
 // Heroku API
-type Client struct{ appID, token string }
+type Client struct{ appID, dyno, token string }
 
 // NewClient takes a Heroku App ID and token and returns a newly
 // generated Heroku Client
-func NewClient(appID, token string) *Client {
-	return &Client{appID: appID, token: token}
+func NewClient(appID, dyno, token string) *Client {
+	return &Client{appID: appID, dyno: dyno, token: token}
 }
 
 // RestartDyno takes a Heroku app ID and an auth token in order to
 // restar a Heroku Dyno
 func (c *Client) RestartDyno() error {
-	if c.appID == "" || c.token == "" {
-		return errors.New("No credentials found to restart Heroku Dynos")
+	if c.appID == "" || c.dyno == "" || c.token == "" {
+		return errors.New("Credentials missing to restart heroku dyno")
 	}
 
 	// Execute the request on the built path
-	return c.do(http.MethodDelete, fmt.Sprintf("/apps/%s/dynos", c.appID))
+	return c.do(http.MethodDelete, fmt.Sprintf("/apps/%s/dynos/%s", c.appID, c.dyno))
 }
 
 // do creates and executes a request using the passed method
