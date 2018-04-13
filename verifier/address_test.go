@@ -8,7 +8,7 @@ type addressSuite struct{}
 
 var _ = check.Suite(&addressSuite{})
 
-func (s *gravatarSuite) TestParseAddress(c *check.C) {
+func (s *addressSuite) TestParseAddress(c *check.C) {
 	email := "email_username@domain.com"
 	address, err := ParseAddress(email)
 
@@ -18,7 +18,7 @@ func (s *gravatarSuite) TestParseAddress(c *check.C) {
 	c.Assert(address.Address, check.Equals, "email_username@domain.com")
 }
 
-func (s *gravatarSuite) TestParseAddressForUpperCaseEmails(c *check.C) {
+func (s *addressSuite) TestParseAddressForUpperCaseEmails(c *check.C) {
 	email := "EMAIL_USERNAME@DOMAIN.COM"
 	address, err := ParseAddress(email)
 
@@ -28,7 +28,7 @@ func (s *gravatarSuite) TestParseAddressForUpperCaseEmails(c *check.C) {
 	c.Assert(address.Address, check.Equals, "email_username@domain.com")
 }
 
-func (s *gravatarSuite) TestParseAddressInvalidEmail(c *check.C) {
+func (s *addressSuite) TestParseAddressInvalidEmail(c *check.C) {
 	email := "email_username@"
 	address, err := ParseAddress(email)
 
@@ -36,7 +36,7 @@ func (s *gravatarSuite) TestParseAddressInvalidEmail(c *check.C) {
 	c.Assert(address, check.IsNil)
 }
 
-func (s *gravatarSuite) TestAddressMD5Method(c *check.C) {
+func (s *addressSuite) TestAddressMD5Method(c *check.C) {
 	address := Address{
 		Username: "user",
 		Domain:   "email.com",

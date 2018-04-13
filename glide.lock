@@ -1,5 +1,5 @@
-hash: 026c84c3e1330814fc2428e03a9c94ee89f9b2d9c73847e2bab9c63d5cb98623
-updated: 2018-04-11T02:05:20.533982-07:00
+hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
+updated: 2018-04-13T01:43:08.726777-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -11,7 +11,7 @@ imports:
   - hmetrics
   - hmetrics/onload
 - name: github.com/labstack/echo
-  version: 37f1a470efa8abb7e89ad221cb4b1cc36f7047bb
+  version: 7c3df7703f2f573138f10eeb2d03ab8136411a32
 - name: github.com/labstack/gommon
   version: 3bc2d333a4c30531c47051369043bcabd62ff4c0
   subpackages:
@@ -35,7 +35,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: f70185d77e8278766928032ee1355e3da47e7181
+  version: d6449816ce06963d9d136eee5a56fca5b0616e7e
   subpackages:
   - acme
   - acme/autocert
@@ -62,6 +62,18 @@ imports:
   - unicode/bidi
   - unicode/norm
 testImports:
+- name: github.com/davecgh/go-spew
+  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: c679ae2cc0cb27ec3293fea7e254e47386f05d69
+  subpackages:
+  - assert
 - name: gopkg.in/check.v1
   version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
 - name: gopkg.in/h2non/gock.v1

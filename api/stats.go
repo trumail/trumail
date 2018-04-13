@@ -9,7 +9,8 @@ import (
 )
 
 // ErrStatsFailure is thrown when we fail to retrieve stats from Tinystat
-var ErrStatsFailure = echo.NewHTTPError(http.StatusInternalServerError, "Failed to retrieve statistics")
+var ErrStatsFailure = echo.NewHTTPError(http.StatusInternalServerError,
+	"Failed to retrieve statistics")
 
 // StatsSummary is an overall stats summary
 type StatsSummary struct {

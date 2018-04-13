@@ -27,6 +27,11 @@ function countup(id, hours, from, to, prefix, suffix) {
         from = to-(rps*(timeout/1000)); // Subtract 10 seconds worth
     }
 
+    // Don't ever fade down
+    if (from > to) {
+        from = to;
+    }
+
     // Configure countup options
     var options = { 
         useEasing: false, 
@@ -62,6 +67,20 @@ function getLimitStatus() {
     }); 
 }
 
+// sets the body of the response modal
+function displayOutput(format, data) {
+    if (format === 'json') {
+        data = vkbeautify.json(data, 4);
+    }
+    if (format === 'xml') {
+        data = vkbeautify.xml(data, 4);
+    }
+    document.getElementsByName('test-results')[0].textContent = data;
+    $('.ui.modal').modal({ closable: false, transition: 'flip vertical' }).modal('show');
+    $('#test-button').removeClass('loading');
+    getLimitStatus();
+}
+
 $(document).ready(function () {
     pollStats();
     getLimitStatus();
@@ -86,19 +105,9 @@ $(document).ready(function () {
 
         // Perform the get request
         $.get(url, function (data) {
-            if (format === 'json') {
-                data = vkbeautify.json(data, 4);
-            }
-            if (format === 'xml') {
-                data = vkbeautify.xml(data, 4);
-            }
-            document.getElementsByName('test-results')[0].textContent = data;
-            $('.ui.modal').modal({
-                closable: false,
-                transition: 'flip vertical'
-            }).modal('show');
-            $('#test-button').removeClass('loading');
-            getLimitStatus();
+            displayOutput(format, data);
+        }, 'text').fail(function (error) {
+            displayOutput(format, error.responseText);
         }, 'text');
     });
 });

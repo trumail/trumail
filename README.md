@@ -11,7 +11,7 @@ NOTE: It is highly recommended (due to potential Heroku IP blacklisting resultin
 
 Using the API is very simple. All that's needed to validate an address is to send a `GET` request using the below URL with one of our three supported formats (json/jsonp(with callback query param)/xml).
 ```
-trumail.io/{format}/{email}
+https://trumail.io/{format}/{email}
 ```
 
 ## Using the library
@@ -26,13 +26,11 @@ import (
 )
 
 func main() {
-  v := trumail.NewVerifier(20, 20, "YOUR_HOSTNAME.COM", "YOUR_EMAIL@DOMAIN.COM")
+  v := trumail.NewVerifier(time.Duration(20)*time.Second, 
+    "YOUR_HOSTNAME.COM", "YOUR_EMAIL@DOMAIN.COM")
   
   // Validate a single address
   log.Println(v.Verify("test@gmail.com"))
-  
-  // Validate multiple addresses at once (uses the same connection if hostnames match)
-  log.Println(v.Verify("test@gmail.com", "test2@gmail.com", "test3@gmail.com"))
 }
 ```
 

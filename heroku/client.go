@@ -3,7 +3,9 @@ package heroku
 import (
 	"errors"
 	"fmt"
-	"net/http"
+	"time"
+
+	"github.com/sdwolfe32/trumail/httpclient"
 )
 
 // baseURL is the base URL of the Heroku API
@@ -11,47 +13,40 @@ const baseURL = "https://api.heroku.com"
 
 // Client contains credentials needed to communicate with the
 // Heroku API
-type Client struct{ appID, dyno, token string }
+type Client struct{ client *httpclient.Client }
 
 // NewClient takes a Heroku App ID and token and returns a newly
 // generated Heroku Client
-func NewClient(appID, dyno, token string) *Client {
-	return &Client{appID: appID, dyno: dyno, token: token}
+func NewClient(token string) *Client {
+	return &Client{
+		client: httpclient.New(time.Second*10,
+			map[string]string{
+				"Content-Type":  "application/json",
+				"Accept":        "application/vnd.heroku+json; version=3",
+				"Authorization": "Bearer " + token,
+			},
+		),
+	}
 }
 
-// RestartDyno takes a Heroku app ID and an auth token in order to
-// restar a Heroku Dyno
-func (c *Client) RestartDyno() error {
-	if c.appID == "" || c.dyno == "" || c.token == "" {
+// RestartApp takes a Heroku app ID and an auth token in order to
+// restart a Heroku App
+func (c *Client) RestartApp(appID string) error {
+	if appID == "" {
 		return errors.New("Credentials missing to restart heroku dyno")
 	}
 
 	// Execute the request on the built path
-	return c.do(http.MethodDelete, fmt.Sprintf("/apps/%s/dynos/%s", c.appID, c.dyno))
+	return c.client.Delete(fmt.Sprintf("%s/apps/%s/dynos", baseURL, appID))
 }
 
-// do creates and executes a request using the passed method
-// and path
-func (c *Client) do(method, path string) error {
-	// Create the request using the passed method and path
-	req, err := http.NewRequest(method, baseURL+path, nil)
-	if err != nil {
-		return err
+// RestartDyno takes a Heroku app ID and an auth token in order to
+// restart a Heroku Dyno
+func (c *Client) RestartDyno(appID, dyno string) error {
+	if appID == "" || dyno == "" {
+		return errors.New("Credentials missing to restart heroku dyno")
 	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/vnd.heroku+json; version=3")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.token))
 
-	// Execute the request
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	// Check the status code before returning with no errors
-	if res.StatusCode != http.StatusAccepted {
-		return errors.New("Non 202 Status-code received")
-	}
-	return nil
+	// Execute the request on the built path
+	return c.client.Delete(fmt.Sprintf("%s/apps/%s/dynos/%s", baseURL, appID, dyno))
 }

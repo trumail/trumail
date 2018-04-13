@@ -4,7 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
+	"github.com/sdwolfe32/trumail/httpclient"
 	"gopkg.in/check.v1"
 	"gopkg.in/h2non/gock.v1"
 )
@@ -23,7 +25,7 @@ func configureRequestMock(addressMD5 string, statusCode int) *gock.Response {
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
-	v := Verifier{client: &http.Client{}}
+	v := Verifier{client: httpclient.New(time.Second*5, nil)}
 	address := &Address{
 		Username: "username",
 		Domain:   "domain.com",
@@ -37,7 +39,7 @@ func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
 }
 
 func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
-	v := Verifier{client: &http.Client{}}
+	v := Verifier{client: httpclient.New(time.Second*5, nil)}
 	address := &Address{
 		Username: "username",
 		Domain:   "domain.com",
@@ -52,7 +54,7 @@ func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusNotOk(c *check.C) {
-	v := Verifier{client: &http.Client{}}
+	v := Verifier{client: httpclient.New(time.Second*5, nil)}
 	address := &Address{
 		Username: "username",
 		Domain:   "domain.com",

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"errors"
+	"log"
 	"net/http"
 
 	raven "github.com/getsentry/raven-go"
@@ -12,8 +12,6 @@ import (
 )
 
 var (
-	// ErrEmailParseFailure is thrown when we're unable to parse an email
-	ErrEmailParseFailure = echo.NewHTTPError(http.StatusBadRequest, verifier.ErrEmailParseFailure.Error())
 	// ErrVerificationFailure is thrown when there is error while validating an email
 	ErrVerificationFailure = echo.NewHTTPError(http.StatusInternalServerError, "Failed to perform email verification lookup")
 	// ErrUnsupportedFormat is thrown when the requestor has defined an unsupported response format
@@ -22,7 +20,7 @@ var (
 	ErrInvalidCallback = echo.NewHTTPError(http.StatusBadRequest, "Invalid callback query param provided")
 )
 
-// Lookup performs a single email validation and returns a fully
+// Lookup performs a single email verification and returns a fully
 // populated lookup or an error
 func (t *TrumailAPI) Lookup(c echo.Context) error {
 	l := t.log.WithField("handler", "Lookup")
@@ -33,68 +31,61 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	email := c.Param("email")
 	l = l.WithField("email", email)
 
-	// Performs the full email validation
-	l.Debug("Performing new validation lookup")
-	lookup, err := t.verify.VerifySingle(email)
+	// Performs the full email verification
+	l.Debug("Performing new email verification")
+	lookup, err := t.verify.Verify(email)
 	if err != nil {
-		if err == verifier.ErrEmailParseFailure {
-			return ErrEmailParseFailure
+		l.WithError(err).Error("Failed to perform verification")
+		if le, ok := err.(*verifier.LookupError); ok {
+			// Restart Dyno if officially confirmed blacklisted
+			if le.Err == verifier.ErrBlocked && t.verify.Blacklisted() {
+				l.Info("Confirmed Blacklisted! - Restarting Dyno")
+				go log.Println(heroku.RestartApp())
+			}
+			return t.encodeResponse(c, http.StatusInternalServerError, le)
 		}
-		return ErrVerificationFailure
+		if err.Error() == verifier.ErrEmailParseFailure {
+			return t.encodeResponse(c, http.StatusBadRequest, err)
+		}
+		return t.encodeResponse(c, http.StatusInternalServerError, err)
 	}
 	l = l.WithField("lookup", lookup)
 
-	// If blocked by Spamhaus trigger a Heroku dyno restart
-	if lookup.Error == verifier.ErrBlocked.Error() {
-		// Restart Dyno if officially confirmed blacklisted
-		if t.verify.Blacklisted() {
-			l.Info("Confirmed Blacklisted! - Restarting Dyno")
-			go heroku.RestartDyno()
-		}
-	}
-
-	// Return an error response code if there's an error
-	if lookup.Error != "" || lookup.ErrorDetails != "" {
-		l.Error("Error performing lookup")
-		return t.encodeLookup(c, http.StatusInternalServerError, lookup)
-	}
-
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")
-	return t.encodeLookup(c, http.StatusOK, lookup)
+	return t.encodeResponse(c, http.StatusOK, lookup)
 }
 
-// encodeLookup encodes the passed response using the "format" and
+// encodeResponse encodes the passed response using the "format" and
 // "callback" parameters on the passed echo.Context
-func (t *TrumailAPI) encodeLookup(c echo.Context, code int, lookup *verifier.Lookup) error {
-	// Send metrics of response
-	if code == http.StatusOK {
-		if lookup.Deliverable {
+func (t *TrumailAPI) encodeResponse(c echo.Context, code int, res interface{}) error {
+	// Send metrics of successful response
+	if l, ok := res.(*verifier.Lookup); ok {
+		if l.Deliverable {
 			tinystat.CreateAction("deliverable")
 		} else {
 			tinystat.CreateAction("undeliverable")
 		}
-	} else {
-		tinystat.CreateAction("error")
 	}
 
-	// Report the error to Sentry
-	if lookup.ErrorDetails != "" {
-		raven.CaptureError(errors.New(lookup.ErrorDetails), nil)
+	// Send metrics of error response
+	if e, ok := res.(error); ok {
+		raven.CaptureError(e, nil) // Sentry metrics
+		tinystat.CreateAction("error")
 	}
 
 	// Encode the in requested format
 	switch c.Param("format") {
 	case "json":
-		return c.JSON(code, lookup)
+		return c.JSON(code, res)
 	case "jsonp":
 		callback := c.QueryParam("callback")
 		if callback == "" {
 			return ErrInvalidCallback
 		}
-		return c.JSONP(code, callback, lookup)
+		return c.JSONP(code, callback, res)
 	case "xml":
-		return c.XML(code, lookup)
+		return c.XML(code, res)
 	default:
 		return ErrUnsupportedFormat
 	}

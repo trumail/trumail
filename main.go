@@ -33,12 +33,13 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
-	v := verifier.NewVerifier(config.HTTPClientTimeout,
-		config.MaxWorkerCount, hostname, config.SourceAddr)
+	v := verifier.NewVerifier(
+		time.Duration(config.HTTPClientTimeout)*time.Second,
+		hostname, config.SourceAddr)
 	// Restart Dyno if officially confirmed blacklisted
 	if v.Blacklisted() {
 		l.Info("Confirmed Blacklisted! - Restarting Dyno")
-		go heroku.RestartDyno()
+		go log.Println(heroku.RestartApp())
 	}
 	s := api.NewTrumailAPI(logger, v)
 

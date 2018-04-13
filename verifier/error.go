@@ -1,99 +1,95 @@
 package verifier
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-var (
+const (
+	ErrEmailParseFailure = "Failed to parse email address"
+
 	// Standard Errors
-	ErrNoStatusCode      = errors.New("No status code")
-	ErrInvalidStatusCode = errors.New("Invalid status code")
-	ErrTimeout           = errors.New("The connection to the mail server has timed out")
-	ErrNoSuchHost        = errors.New("Mail server does not exist")
-	ErrServerUnavailable = errors.New("Mail server is unavailable")
-	ErrBlocked           = errors.New("Blocked by mail server")
+	ErrNoStatusCode      = "No status code"
+	ErrInvalidStatusCode = "Invalid status code"
+	ErrTimeout           = "The connection to the mail server has timed out"
+	ErrNoSuchHost        = "Mail server does not exist"
+	ErrServerUnavailable = "Mail server is unavailable"
+	ErrBlocked           = "Blocked by mail server"
 
 	// RCPT Errors
-	ErrTryAgainLater           = errors.New("Try again later")
-	ErrFullInbox               = errors.New("Recipient out of disk space")
-	ErrTooManyRCPT             = errors.New("Too many recipients")
-	ErrNoRelay                 = errors.New("Not an open relay")
-	ErrMailboxBusy             = errors.New("Mailbox busy")
-	ErrExceededMessagingLimits = errors.New("Messaging limits have been exceeded")
-	ErrNotAllowed              = errors.New("Not Allowed")
-	ErrNeedMAILBeforeRCPT      = errors.New("Need MAIL before RCPT")
-	ErrRCPTHasMoved            = errors.New("Recipient has moved")
+	ErrTryAgainLater           = "Try again later"
+	ErrFullInbox               = "Recipient out of disk space"
+	ErrTooManyRCPT             = "Too many recipients"
+	ErrNoRelay                 = "Not an open relay"
+	ErrMailboxBusy             = "Mailbox busy"
+	ErrExceededMessagingLimits = "Messaging limits have been exceeded"
+	ErrNotAllowed              = "Not Allowed"
+	ErrNeedMAILBeforeRCPT      = "Need MAIL before RCPT"
+	ErrRCPTHasMoved            = "Recipient has moved"
 )
 
-// shouldReconnect determines whether or not we should retry connecting to the
-// smtp server based on the response received
-func shouldReconnect(err error) bool {
-	if err == nil {
-		return false
-	}
-	errStr := strings.ToLower(err.Error())
-	if insContains(errStr,
-		"i/o timeout",
-		"broken pipe",
-		"use of closed network connection",
-		"connection reset by peer",
-		"multiple regions",
-		"server busy",
-		"eof") ||
-		err == ErrTooManyRCPT ||
-		err == ErrTryAgainLater {
-		return true
-	}
-	return false
+// LookupError is an error
+type LookupError struct {
+	Err          string `json:"error,omitempty"`
+	ErrorDetails string `json:"errorDetails,omitempty"`
 }
 
-// parseSTDErr parses a standard error in order to return a more user
-// friendly version of the error
-func parseSTDErr(err error) (error, error) {
-	if err == nil {
-		return nil, nil
-	}
-	errStr := strings.ToLower(err.Error())
+// newLookupError creates a new LookupError reference and
+// returns it
+func newLookupError(e, d string) *LookupError { return &LookupError{e, d} }
 
-	// Return a friendly error that
+// Error satisfies the error interface
+func (e *LookupError) Error() string {
+	return fmt.Sprintf("%s : %s", e.Err, e.ErrorDetails)
+}
+
+// parseSTDErr parses a standard error in order to return a
+// more user friendly version of the error
+func parseSTDErr(err error) *LookupError {
+	if err == nil {
+		return nil
+	}
+	errStr := err.Error()
+
+	// Return a more understandable error
 	switch {
 	case insContains(errStr,
 		"spamhaus",
 		"proofpoint",
+		"cloudmark",
 		"banned",
 		"blocked",
 		"denied"):
-		return ErrBlocked, err
+		return newLookupError(ErrBlocked, errStr)
 	case insContains(errStr, "timeout"):
-		return ErrTimeout, err
+		return newLookupError(ErrTimeout, errStr)
 	case insContains(errStr, "no such host"):
-		return ErrNoSuchHost, err
+		return newLookupError(ErrNoSuchHost, errStr)
 	case insContains(errStr, "unavailable"):
-		return ErrServerUnavailable, err
+		return newLookupError(ErrServerUnavailable, errStr)
 	default:
-		return err, err
+		return newLookupError("", errStr)
 	}
 }
 
-// parseRCPTErr receives an MX Servers RCPT response message and generates the
-// cooresponding MX error
-func parseRCPTErr(err error) (error, error) {
+// parseRCPTErr receives an MX Servers RCPT response message
+// and generates the cooresponding MX error
+func parseRCPTErr(err error) *LookupError {
 	if err == nil {
-		return nil, nil
+		return nil
 	}
-	errStr := strings.ToLower(err.Error())
+	errStr := err.Error()
 
 	// Verify the length of the error before reading nil indexes
 	if len(errStr) < 3 {
-		return ErrNoStatusCode, err
+		return newLookupError(ErrNoStatusCode, errStr)
 	}
 
 	// Strips out the status code string and converts to an integer for parsing
 	status, convErr := strconv.Atoi(string([]rune(errStr)[0:3]))
 	if convErr != nil {
-		return ErrInvalidStatusCode, err
+		return newLookupError(ErrInvalidStatusCode, errStr)
 	}
 
 	// If the status code is above 400 there was an error and we should return it
@@ -107,48 +103,49 @@ func parseRCPTErr(err error) (error, error) {
 			"recipient invalid",
 			"recipient rejected",
 			"no mailbox") {
-			return nil, nil
+			return nil
 		}
 
 		switch status {
 		case 421:
-			return ErrTryAgainLater, err
+			return newLookupError(ErrTryAgainLater, errStr)
 		case 450:
-			return ErrMailboxBusy, err
+			return newLookupError(ErrMailboxBusy, errStr)
 		case 451:
-			return ErrExceededMessagingLimits, err
+			return newLookupError(ErrExceededMessagingLimits, errStr)
 		case 452:
 			if insContains(errStr,
 				"full",
 				"space") {
-				return ErrFullInbox, err
+				return newLookupError(ErrFullInbox, errStr)
 			}
-			return ErrTooManyRCPT, err
+			return newLookupError(ErrTooManyRCPT, errStr)
 		case 503:
-			return ErrNeedMAILBeforeRCPT, err
+			return newLookupError(ErrNeedMAILBeforeRCPT, errStr)
 		case 550: // 550 is Mailbox Unavailable - usually undeliverable
 			if insContains(errStr,
 				"spamhaus",
 				"proofpoint",
+				"cloudmark",
 				"banned",
 				"blocked",
 				"denied") {
-				return ErrBlocked, err
+				return newLookupError(ErrBlocked, errStr)
 			}
-			return nil, nil
+			return nil
 		case 551:
-			return ErrRCPTHasMoved, err
+			return newLookupError(ErrRCPTHasMoved, errStr)
 		case 552:
-			return ErrFullInbox, err
+			return newLookupError(ErrFullInbox, errStr)
 		case 553:
-			return ErrNoRelay, err
+			return newLookupError(ErrNoRelay, errStr)
 		case 554:
-			return ErrNotAllowed, err
+			return newLookupError(ErrNotAllowed, errStr)
 		default:
 			return parseSTDErr(err)
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 // insContains returns true if any of the substrings
@@ -163,13 +160,4 @@ func insContains(str string, substr ...string) bool {
 		}
 	}
 	return false
-}
-
-// errStr returns the string representation of an error, returning
-// an empty string if the error passed is nil
-func errStr(err error) string {
-	if err == nil {
-		return ""
-	}
-	return err.Error()
 }

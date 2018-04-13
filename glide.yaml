@@ -1,4 +1,2 @@
 package: github.com/sdwolfe32/trumail
 import:
-- package: github.com/labstack/echo
-  version: 37f1a470efa8abb7e89ad221cb4b1cc36f7047bb

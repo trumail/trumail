@@ -2,7 +2,6 @@ package verifier
 
 import (
 	"fmt"
-	"net/http"
 )
 
 const gravatarBaseURL = "https://en.gravatar.com"
@@ -11,10 +10,5 @@ const gravatarBaseURL = "https://en.gravatar.com"
 // associated with a gravatar account
 func (v *Verifier) HasGravatar(a *Address) bool {
 	u := fmt.Sprintf("%s/%s.json", gravatarBaseURL, a.MD5())
-	resp, err := v.client.Head(u)
-	if err != nil {
-		return false
-	}
-	defer resp.Body.Close()
-	return resp.StatusCode == http.StatusOK
+	return v.client.Head(u) == nil
 }
