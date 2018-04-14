@@ -38,7 +38,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// First parse the email string passed
 	a, err := ParseAddress(email)
 	if err != nil {
-		return nil, newLookupError("", ErrEmailParseFailure)
+		return nil, newLookupError(ErrEmailParseFailure, ErrEmailParseFailure, false)
 	}
 
 	// Attempt to form an SMTP Connection
@@ -64,7 +64,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 		if err := del.IsDeliverable(a.Address, 3); err != nil {
 			le := parseRCPTErr(err)
 			if le != nil {
-				if le.Err == ErrFullInbox {
+				if le.Message == ErrFullInbox {
 					l.FullInbox = true // Set FullInbox and move on
 				} else {
 					return nil, le // Return if it's a legit error

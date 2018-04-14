@@ -47,9 +47,9 @@ func (v *Verifier) NewDeliverabler(domain string) (*Deliverabler, error) {
 		if err, ok := r.(error); ok {
 			return nil, err
 		}
-		return nil, errors.New("Unexpected response from deliverabler")
+		return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse, false)
 	case <-time.After(v.client.Client.Timeout):
-		return nil, errors.New("Timeout connecting to mail-exchanger")
+		return nil, newLookupError(ErrTimeout, ErrTimeout, false)
 	}
 }
 
@@ -61,19 +61,8 @@ func newDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error)
 		asciiDomain = domain
 	}
 
-	// Lookup all MX records
-	records, err := net.LookupMX(asciiDomain)
-	if err != nil {
-		return nil, err
-	}
-
-	// Verify that at least 1 MX record is found
-	if len(records) == 0 {
-		return nil, errors.New("No MX records found")
-	}
-
 	// Dial the SMTP server
-	client, err := smtp.Dial(records[0].Host + ":25")
+	client, err := dialSMTP(asciiDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +110,53 @@ func (d *Deliverabler) HasCatchAll(retry int) bool {
 func (d *Deliverabler) Close() {
 	d.client.Quit()
 	d.client.Close()
+}
+
+// dialSMTP receives a domain and attempts to dial the mail server having
+// retrieved one or more MX records
+func dialSMTP(domain string) (*smtp.Client, error) {
+	// Retrieve all MX records
+	records, err := net.LookupMX(domain)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify that at least 1 MX record is found
+	if len(records) == 0 {
+		return nil, errors.New("No MX records found")
+	}
+
+	// Create a channel for receiving the first successful
+	// connection on
+	client := make(chan *smtp.Client, 1)
+
+	// Attempt to connect to all SMTP servers concurrently
+	for _, record := range records {
+		addr := record.Host + ":25"
+		go func() {
+			// Dial the server with a timeout
+			conn, err := net.DialTimeout("tcp", addr, time.Minute)
+			if err != nil {
+				return
+			}
+
+			// Generate an smtp client form the connection
+			host, _, _ := net.SplitHostPort(addr)
+			sc, err := smtp.NewClient(conn, host)
+			if err != nil {
+				conn.Close()
+				return
+			}
+
+			// Place the connection on the channel or close it
+			select {
+			case client <- sc:
+			default:
+				sc.Close()
+			}
+		}()
+	}
+	return <-client, nil
 }
 
 // shouldRetry determines whether or not we should retry connecting to the

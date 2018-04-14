@@ -16,6 +16,6 @@ func TestParse550RCPTError(t *testing.T) {
 func TestParse550BlockedRCPTError(t *testing.T) {
 	err := errors.New("550 spamhaus")
 	le := parseRCPTErr(err)
-	assert.Equal(t, ErrBlocked, le.Err)
-	assert.Equal(t, err.Error(), le.ErrorDetails)
+	assert.Equal(t, ErrBlocked, le.Message)
+	assert.Equal(t, err.Error(), le.Details)
 }

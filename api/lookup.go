@@ -38,7 +38,7 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 		l.WithError(err).Error("Failed to perform verification")
 		if le, ok := err.(*verifier.LookupError); ok {
 			// Restart Dyno if officially confirmed blacklisted
-			if le.Err == verifier.ErrBlocked && t.verify.Blacklisted() {
+			if le.Message == verifier.ErrBlocked && t.verify.Blacklisted() {
 				l.Info("Confirmed Blacklisted! - Restarting Dyno")
 				go log.Println(heroku.RestartApp())
 			}
@@ -60,8 +60,8 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 // "callback" parameters on the passed echo.Context
 func (t *TrumailAPI) encodeResponse(c echo.Context, code int, res interface{}) error {
 	// Send metrics of successful response
-	if l, ok := res.(*verifier.Lookup); ok {
-		if l.Deliverable {
+	if le, ok := res.(*verifier.Lookup); ok {
+		if le.Deliverable {
 			tinystat.CreateAction("deliverable")
 		} else {
 			tinystat.CreateAction("undeliverable")
@@ -70,8 +70,17 @@ func (t *TrumailAPI) encodeResponse(c echo.Context, code int, res interface{}) e
 
 	// Send metrics of error response
 	if e, ok := res.(error); ok {
-		raven.CaptureError(e, nil) // Sentry metrics
-		tinystat.CreateAction("error")
+		if le, ok := e.(*verifier.LookupError); ok {
+			// LookupError with report == true
+			if le.Report {
+				raven.CaptureError(e, nil) // Sentry metrics
+				tinystat.CreateAction("error")
+			}
+		} else {
+			// Standard error
+			raven.CaptureError(e, nil) // Sentry metrics
+			tinystat.CreateAction("error")
+		}
 	}
 
 	// Encode the in requested format

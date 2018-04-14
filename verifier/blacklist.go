@@ -59,8 +59,8 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 	if err != nil {
 		// If the error confirms we are blocked with the selector
 		le := parseRCPTErr(err)
-		if le != nil && le.Err == ErrBlocked &&
-			insContains(le.ErrorDetails, selector) {
+		if le != nil && le.Message == ErrBlocked &&
+			insContains(le.Details, selector) {
 			return true
 		}
 		return false
@@ -71,8 +71,8 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 	if err := deliverabler.IsDeliverable(a.Address, 5); err != nil {
 		// If the error confirms we are blocked with the selector
 		le := parseRCPTErr(err)
-		if le != nil && le.Err == ErrBlocked &&
-			insContains(le.ErrorDetails, selector) {
+		if le != nil && le.Message == ErrBlocked &&
+			insContains(le.Details, selector) {
 			return true
 		}
 		return false

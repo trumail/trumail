@@ -14,11 +14,8 @@ var (
 	Port = getEnv("PORT", "8080")
 	// Env defines the environment where the service is being ran
 	Env = getEnv("ENVIRONMENT", "development")
-	// MaxWorkerCount specifies the maximum number of goroutines to be
-	// used when creating a smtp verification pool (multi-email verification)
-	MaxWorkerCount, _ = strconv.Atoi(getEnv("MAX_WORKER_COUNT", "20"))
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
-	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "20"))
+	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "25"))
 	// RateLimitMax is the maximum number of requests allowed in the
 	// specified interval
 	RateLimitMax, _ = strconv.ParseInt(getEnv("RATE_LIMIT_MAX", ""), 10, 64)

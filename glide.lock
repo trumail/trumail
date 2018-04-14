@@ -1,12 +1,12 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-13T01:43:08.726777-07:00
+updated: 2018-04-13T18:51:13.831839-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/getsentry/raven-go
   version: d1470f50d3a3a38533355a9fab7393e25a3b4226
 - name: github.com/heroku/x
-  version: a4225bbbfc8a517c9a95251aec1a8189443673b1
+  version: e027b57be83570b92aeefcdad710e38695d5999b
   subpackages:
   - hmetrics
   - hmetrics/onload
@@ -50,7 +50,7 @@ imports:
   subpackages:
   - errgroup
 - name: golang.org/x/sys
-  version: 3b87a42e500a6dc65dae1a55d0b641295971163e
+  version: f6f352972f061230a99fbf49d1eb8073ebdb36cb
   subpackages:
   - unix
   - windows

@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	ErrEmailParseFailure = "Failed to parse email address"
+	ErrUnexpectedResponse = "Unexpected response from deliverabler"
+	ErrEmailParseFailure  = "Failed to parse email address"
 
 	// Standard Errors
 	ErrNoStatusCode      = "No status code"
@@ -31,17 +32,20 @@ const (
 
 // LookupError is an error
 type LookupError struct {
-	Err          string `json:"error,omitempty"`
-	ErrorDetails string `json:"errorDetails,omitempty"`
+	Message string `json:"message" json:"message"`
+	Details string `json:"details" json:"details"`
+	Report  bool   `json:"-" xml:"-"`
 }
 
 // newLookupError creates a new LookupError reference and
 // returns it
-func newLookupError(e, d string) *LookupError { return &LookupError{e, d} }
+func newLookupError(message, details string, report bool) *LookupError {
+	return &LookupError{message, details, report}
+}
 
 // Error satisfies the error interface
 func (e *LookupError) Error() string {
-	return fmt.Sprintf("%s : %s", e.Err, e.ErrorDetails)
+	return fmt.Sprintf("%s : %s", e.Message, e.Details)
 }
 
 // parseSTDErr parses a standard error in order to return a
@@ -61,15 +65,15 @@ func parseSTDErr(err error) *LookupError {
 		"banned",
 		"blocked",
 		"denied"):
-		return newLookupError(ErrBlocked, errStr)
+		return newLookupError(ErrBlocked, errStr, true)
 	case insContains(errStr, "timeout"):
-		return newLookupError(ErrTimeout, errStr)
+		return newLookupError(ErrTimeout, errStr, false)
 	case insContains(errStr, "no such host"):
-		return newLookupError(ErrNoSuchHost, errStr)
+		return newLookupError(ErrNoSuchHost, errStr, false)
 	case insContains(errStr, "unavailable"):
-		return newLookupError(ErrServerUnavailable, errStr)
+		return newLookupError(ErrServerUnavailable, errStr, false)
 	default:
-		return newLookupError("", errStr)
+		return newLookupError(errStr, errStr, true)
 	}
 }
 
@@ -83,13 +87,13 @@ func parseRCPTErr(err error) *LookupError {
 
 	// Verify the length of the error before reading nil indexes
 	if len(errStr) < 3 {
-		return newLookupError(ErrNoStatusCode, errStr)
+		return newLookupError(ErrNoStatusCode, errStr, true)
 	}
 
 	// Strips out the status code string and converts to an integer for parsing
 	status, convErr := strconv.Atoi(string([]rune(errStr)[0:3]))
 	if convErr != nil {
-		return newLookupError(ErrInvalidStatusCode, errStr)
+		return newLookupError(ErrInvalidStatusCode, errStr, true)
 	}
 
 	// If the status code is above 400 there was an error and we should return it
@@ -99,6 +103,7 @@ func parseRCPTErr(err error) *LookupError {
 		if insContains(errStr,
 			"undeliverable",
 			"does not exist",
+			"may not exist",
 			"invalid address",
 			"recipient invalid",
 			"recipient rejected",
@@ -108,20 +113,21 @@ func parseRCPTErr(err error) *LookupError {
 
 		switch status {
 		case 421:
-			return newLookupError(ErrTryAgainLater, errStr)
+			return newLookupError(ErrTryAgainLater, errStr, true)
 		case 450:
-			return newLookupError(ErrMailboxBusy, errStr)
+			return newLookupError(ErrMailboxBusy, errStr, true)
 		case 451:
-			return newLookupError(ErrExceededMessagingLimits, errStr)
+			return newLookupError(ErrExceededMessagingLimits, errStr, true)
 		case 452:
 			if insContains(errStr,
 				"full",
-				"space") {
-				return newLookupError(ErrFullInbox, errStr)
+				"space",
+				"over quota") {
+				return newLookupError(ErrFullInbox, errStr, true)
 			}
-			return newLookupError(ErrTooManyRCPT, errStr)
+			return newLookupError(ErrTooManyRCPT, errStr, true)
 		case 503:
-			return newLookupError(ErrNeedMAILBeforeRCPT, errStr)
+			return newLookupError(ErrNeedMAILBeforeRCPT, errStr, true)
 		case 550: // 550 is Mailbox Unavailable - usually undeliverable
 			if insContains(errStr,
 				"spamhaus",
@@ -130,17 +136,17 @@ func parseRCPTErr(err error) *LookupError {
 				"banned",
 				"blocked",
 				"denied") {
-				return newLookupError(ErrBlocked, errStr)
+				return newLookupError(ErrBlocked, errStr, true)
 			}
 			return nil
 		case 551:
-			return newLookupError(ErrRCPTHasMoved, errStr)
+			return newLookupError(ErrRCPTHasMoved, errStr, true)
 		case 552:
-			return newLookupError(ErrFullInbox, errStr)
+			return newLookupError(ErrFullInbox, errStr, false)
 		case 553:
-			return newLookupError(ErrNoRelay, errStr)
+			return newLookupError(ErrNoRelay, errStr, true)
 		case 554:
-			return newLookupError(ErrNotAllowed, errStr)
+			return newLookupError(ErrNotAllowed, errStr, true)
 		default:
 			return parseSTDErr(err)
 		}
