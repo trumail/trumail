@@ -49,7 +49,7 @@ func NewReqData() *ReqData { return &ReqData{start: time.Now()} }
 // Count increments the count on a ReqData
 func (f *ReqData) Count() { f.count++ }
 
-// Do returns an error if the ip passed has performed too
+// RateLimit returns an error if the ip passed has performed too
 // many requests in the defined period of time.
 func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {

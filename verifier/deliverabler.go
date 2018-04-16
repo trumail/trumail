@@ -24,7 +24,7 @@ type Deliverabler struct {
 // NewDeliverabler generates a new Deliverabler reference, failing if it's
 // unable to produce an output within the specified timeout on the client
 func (v *Verifier) NewDeliverabler(domain string) (*Deliverabler, error) {
-	ch := make(chan interface{}, 1)
+	ch := make(chan interface{})
 
 	// Create a goroutine that will attempt to connect to the SMTP server
 	go func() {
@@ -128,35 +128,39 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 
 	// Create a channel for receiving the first successful
 	// connection on
-	client := make(chan *smtp.Client, 1)
+	client := make(chan *smtp.Client)
 
 	// Attempt to connect to all SMTP servers concurrently
 	for _, record := range records {
 		addr := record.Host + ":25"
 		go func() {
-			// Dial the server with a timeout
-			conn, err := net.DialTimeout("tcp", addr, time.Minute)
+			c, err := smtpDialTimeout(addr, time.Minute)
 			if err != nil {
 				return
 			}
 
-			// Generate an smtp client form the connection
-			host, _, _ := net.SplitHostPort(addr)
-			sc, err := smtp.NewClient(conn, host)
-			if err != nil {
-				conn.Close()
-				return
-			}
-
-			// Place the connection on the channel or close it
+			// Place the client on the channel or close it
 			select {
-			case client <- sc:
+			case client <- c:
 			default:
-				sc.Close()
+				c.Close()
 			}
 		}()
 	}
 	return <-client, nil
+}
+
+// smtpDialTimeout dials an SMTP connection with the passed timeout
+func smtpDialTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
+	// Dial the server with a timeout
+	conn, err := net.DialTimeout("tcp", addr, timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate an smtp client form the connection
+	host, _, _ := net.SplitHostPort(addr)
+	return smtp.NewClient(conn, host)
 }
 
 // shouldRetry determines whether or not we should retry connecting to the
