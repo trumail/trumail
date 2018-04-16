@@ -33,15 +33,14 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
-	v := verifier.NewVerifier(
-		time.Duration(config.HTTPClientTimeout)*time.Second,
-		hostname, config.SourceAddr)
+	v := verifier.NewVerifier(hostname, config.SourceAddr)
 	// Restart Dyno if officially confirmed blacklisted
 	if v.Blacklisted() {
 		l.Info("Confirmed Blacklisted! - Restarting Dyno")
 		go log.Println(heroku.RestartApp())
 	}
-	s := api.NewTrumailAPI(logger, v)
+	s := api.NewTrumailAPI(logger,
+		time.Duration(config.HTTPClientTimeout)*time.Second, v)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")

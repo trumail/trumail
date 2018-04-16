@@ -33,12 +33,12 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// Performs the full email verification
 	l.Debug("Performing new email verification")
-	lookup, err := t.verify.Verify(email)
+	lookup, err := t.verifier.VerifyTimeout(email, t.timeout)
 	if err != nil {
 		l.WithError(err).Error("Failed to perform verification")
 		if le, ok := err.(*verifier.LookupError); ok {
 			// Restart Dyno if officially confirmed blacklisted
-			if le.Message == verifier.ErrBlocked && t.verify.Blacklisted() {
+			if le.Message == verifier.ErrBlocked && t.verifier.Blacklisted() {
 				l.Info("Confirmed Blacklisted! - Restarting Dyno")
 				go log.Println(heroku.RestartApp())
 			}

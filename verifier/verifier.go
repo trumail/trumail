@@ -15,9 +15,11 @@ type Verifier struct {
 	disp                 *Disposabler
 }
 
-// NewVerifier generates a new AddressVerifier reference
-func NewVerifier(timeout time.Duration, hostname, sourceAddr string) *Verifier {
-	client := httpclient.New(timeout, nil)
+// NewVerifier generates a new httpclient.Client using the passed timeout
+// and then returns a new Verifier reference that will be used to Verify
+// email addresses
+func NewVerifier(hostname, sourceAddr string) *Verifier {
+	client := httpclient.New(time.Second*30, nil)
 	return &Verifier{client, hostname, sourceAddr, NewDisposabler(client)}
 }
 
@@ -32,8 +34,8 @@ type Lookup struct {
 	Gravatar    bool `json:"gravatar" xml:"gravatar"`
 }
 
-// VerifyTimeout performs an email verification, failing with an
-// ErrTimeout if a valid Lookup isn't produced within the timeout passed
+// VerifyTimeout performs an email verification, failing with an ErrTimeout
+// if a valid Lookup isn't produced within the timeout passed
 func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, error) {
 	ch := make(chan interface{})
 
