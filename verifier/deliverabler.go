@@ -94,28 +94,9 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 		return nil, errors.New("No MX records found")
 	}
 
-	// Create a channel for receiving the first successful
-	// connection on
-	client := make(chan *smtp.Client)
-
-	// Attempt to connect to all SMTP servers concurrently
-	for _, record := range records {
-		addr := record.Host + ":25"
-		go func() {
-			c, err := smtpDialTimeout(addr, time.Minute)
-			if err != nil {
-				return
-			}
-
-			// Place the client on the channel or close it
-			select {
-			case client <- c:
-			default:
-				c.Close()
-			}
-		}()
-	}
-	return <-client, nil
+	// TODO Connect to other servers concurrently to prevent
+	// connecting to a nolisting host
+	return smtpDialTimeout(records[0].Host+":25", time.Minute)
 }
 
 // smtpDialTimeout dials an SMTP connection with the passed timeout

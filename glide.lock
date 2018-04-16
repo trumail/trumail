@@ -1,5 +1,5 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-15T18:07:53.836587-07:00
+updated: 2018-04-16T13:21:14.165892-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -11,7 +11,7 @@ imports:
   - hmetrics
   - hmetrics/onload
 - name: github.com/labstack/echo
-  version: b64e4d12c7319f830509003dcbcf6b719b5b00df
+  version: f867058e3ba4fa4504e3ca976b31012db3ce1555
 - name: github.com/labstack/gommon
   version: 3bc2d333a4c30531c47051369043bcabd62ff4c0
   subpackages:
@@ -41,7 +41,7 @@ imports:
   - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
-  version: 500e7a4f953ddaf55d316b4d3adc516aa0379622
+  version: a35a21de978d84ffc92f010a153705b170b2f9d1
   subpackages:
   - context
   - idna
@@ -50,7 +50,7 @@ imports:
   subpackages:
   - errgroup
 - name: golang.org/x/sys
-  version: 2281fa97ef7b0c26324634d5a22f04babdac8713
+  version: 2f57af4873d00d535c5c9028850aa2152e6a5566
   subpackages:
   - unix
   - windows
