@@ -21,40 +21,8 @@ type Deliverabler struct {
 	domain, hostname, sourceAddr string
 }
 
-// NewDeliverabler generates a new Deliverabler reference, failing if it's
-// unable to produce an output within the specified timeout on the client
-func (v *Verifier) NewDeliverabler(domain string) (*Deliverabler, error) {
-	ch := make(chan interface{})
-
-	// Create a goroutine that will attempt to connect to the SMTP server
-	go func() {
-		d, err := newDeliverabler(domain, v.hostname, v.sourceAddr)
-		if err != nil {
-			ch <- err
-		} else {
-			ch <- d
-		}
-	}()
-
-	// Block until a response is produced or timeout
-	select {
-	case r := <-ch:
-		// Return the successful response
-		if del, ok := r.(*Deliverabler); ok {
-			return del, nil
-		}
-		// Return the error
-		if err, ok := r.(error); ok {
-			return nil, err
-		}
-		return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse, false)
-	case <-time.After(v.client.Client.Timeout):
-		return nil, newLookupError(ErrTimeout, ErrTimeout, false)
-	}
-}
-
-// newDeliverabler generates a new Deliverabler reference
-func newDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error) {
+// NewDeliverabler generates a new Deliverabler reference
+func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error) {
 	// Convert any internationalized domain names to ascii
 	asciiDomain, err := idna.ToASCII(domain)
 	if err != nil {
@@ -89,7 +57,7 @@ func (d *Deliverabler) IsDeliverable(email string, retry int) error {
 		// If we determine a retry should take place
 		if shouldRetry(err) && retry > 0 {
 			d.Close()                                                    // Close the previous Deliverabler
-			d, err = newDeliverabler(d.domain, d.hostname, d.sourceAddr) // Generate a new Deliverabler
+			d, err = NewDeliverabler(d.domain, d.hostname, d.sourceAddr) // Generate a new Deliverabler
 			if err != nil {
 				return err
 			}

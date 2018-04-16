@@ -55,7 +55,7 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 
 	// Attempts to form an SMTP Connection to the proofpoint
 	// protected mailserver
-	deliverabler, err := v.NewDeliverabler(a.Domain)
+	deliverabler, err := NewDeliverabler(a.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
 		// If the error confirms we are blocked with the selector
 		le := parseRCPTErr(err)

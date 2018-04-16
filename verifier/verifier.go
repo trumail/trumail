@@ -32,6 +32,37 @@ type Lookup struct {
 	Gravatar    bool `json:"gravatar" xml:"gravatar"`
 }
 
+// VerifyTimeout performs an email verification, failing with an
+// ErrTimeout if a valid Lookup isn't produced within the timeout passed
+func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, error) {
+	ch := make(chan interface{})
+
+	// Create a goroutine that will attempt to connect to the SMTP server
+	go func() {
+		d, err := v.Verify(email)
+		if err != nil {
+			ch <- err
+		} else {
+			ch <- d
+		}
+	}()
+
+	// Block until a response is produced or timeout
+	select {
+	case res := <-ch:
+		switch r := res.(type) {
+		case *Lookup:
+			return r, nil
+		case error:
+			return nil, r
+		default:
+			return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse, false)
+		}
+	case <-time.After(timeout):
+		return nil, newLookupError(ErrTimeout, ErrTimeout, false)
+	}
+}
+
 // Verify parses the passed email and verifies it's deliverability,
 // returning any errors that are encountered
 func (v *Verifier) Verify(email string) (*Lookup, error) {
@@ -42,7 +73,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	}
 
 	// Attempt to form an SMTP Connection
-	del, err := v.NewDeliverabler(a.Domain)
+	del, err := NewDeliverabler(a.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
 		return nil, parseSTDErr(err)
 	}
