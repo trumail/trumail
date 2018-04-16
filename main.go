@@ -52,6 +52,7 @@ func main() {
 	} else {
 		e.GET("/:format/:email", s.Lookup)
 	}
+	e.GET("/ping", s.Ping)
 	e.GET("/stats", s.Stats)
 
 	// Host static demo pages if configured to do so
