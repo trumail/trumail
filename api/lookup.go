@@ -1,13 +1,11 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	tinystat "github.com/sdwolfe32/tinystat/client"
-	"github.com/sdwolfe32/trumail/heroku"
 	"github.com/sdwolfe32/trumail/verifier"
 )
 
@@ -37,11 +35,6 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	if err != nil {
 		l.WithError(err).Error("Failed to perform verification")
 		if le, ok := err.(*verifier.LookupError); ok {
-			// Restart Dyno if officially confirmed blacklisted
-			if le.Message == verifier.ErrBlocked && t.verifier.Blacklisted() {
-				l.Info("Confirmed Blacklisted! - Restarting Dyno")
-				go log.Println(heroku.RestartApp())
-			}
 			return t.encodeResponse(c, http.StatusInternalServerError, le)
 		}
 		if err.Error() == verifier.ErrEmailParseFailure {

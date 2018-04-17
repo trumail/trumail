@@ -49,6 +49,36 @@ func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error)
 	return &Deliverabler{client, domain, hostname, sourceAddr}, nil
 }
 
+// dialSMTP receives a domain and attempts to dial the mail server having
+// retrieved one or more MX records
+func dialSMTP(domain string) (*smtp.Client, error) {
+	// Retrieve all MX records
+	records, err := net.LookupMX(domain)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify that at least 1 MX record is found
+	if len(records) == 0 {
+		return nil, errors.New("No MX records found")
+	}
+	addr := records[0].Host + ":25"
+
+	// TODO Connect to other SMTP servers concurrently and use the
+	// first successful connection to prevent trying to only
+	// communicate with a NOLISTING host
+
+	// Dial the server with a timeout
+	conn, err := net.DialTimeout("tcp", addr, time.Minute)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate an smtp client form the connection
+	host, _, _ := net.SplitHostPort(addr)
+	return smtp.NewClient(conn, host)
+}
+
 // IsDeliverable takes an email address and performs the operation of adding
 // the email to the envelope. It also receives a number of retries to reconnect
 // to the MX server before erring out. If a 250 is received the email is valid
@@ -78,38 +108,6 @@ func (d *Deliverabler) HasCatchAll(retry int) bool {
 func (d *Deliverabler) Close() {
 	d.client.Quit()
 	d.client.Close()
-}
-
-// dialSMTP receives a domain and attempts to dial the mail server having
-// retrieved one or more MX records
-func dialSMTP(domain string) (*smtp.Client, error) {
-	// Retrieve all MX records
-	records, err := net.LookupMX(domain)
-	if err != nil {
-		return nil, err
-	}
-
-	// Verify that at least 1 MX record is found
-	if len(records) == 0 {
-		return nil, errors.New("No MX records found")
-	}
-
-	// TODO Connect to other servers concurrently to prevent
-	// connecting to a nolisting host
-	return smtpDialTimeout(records[0].Host+":25", time.Minute)
-}
-
-// smtpDialTimeout dials an SMTP connection with the passed timeout
-func smtpDialTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
-	// Dial the server with a timeout
-	conn, err := net.DialTimeout("tcp", addr, timeout)
-	if err != nil {
-		return nil, err
-	}
-
-	// Generate an smtp client form the connection
-	host, _, _ := net.SplitHostPort(addr)
-	return smtp.NewClient(conn, host)
 }
 
 // shouldRetry determines whether or not we should retry connecting to the
