@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"io/ioutil"
 	"log"
 	"net"
@@ -70,8 +71,11 @@ func main() {
 // retrievePTR attempts to retrieve the PTR record for the IP
 // address retrieved via an API call on api.ipify.org
 func retrievePTR() string {
+	transport := http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, Proxy: http.ProxyFromEnvironment}
+	client := &http.Client{Transport: &transport}
+
 	// Request the IP from ipify
-	resp, err := http.Get("https://api.ipify.org/")
+	resp, err := client.Get("https://api.ipify.org/")
 	if err != nil {
 		log.Fatal("Failed to retrieve IP from api.ipify.org")
 	}
