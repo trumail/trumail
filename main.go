@@ -10,11 +10,11 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
-	"github.com/sdwolfe32/trumail/api"
-	"github.com/sdwolfe32/trumail/config"
 	"github.com/sdwolfe32/trumail/heroku"
 	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
+	"github.com/technosolutionscl/trumail/api"
+	"github.com/technosolutionscl/trumail/config"
 )
 
 func main() {
@@ -46,12 +46,13 @@ func main() {
 	l.Info("Binding API endpoints to the router")
 	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
 		r := api.NewRateLimiter(config.RateLimitMax,
-			time.Hour*time.Duration(config.RateLimitHours))
+			time.Hour*time.Duration(config.RateLimitHours), config.RateLimitCIDRCustom)
 		e.GET("/:format/:email", s.Lookup, r.RateLimit)
 		e.GET("/limit-status", r.LimitStatus)
 	} else {
 		e.GET("/:format/:email", s.Lookup)
 	}
+	e.GET("/ping", s.Ping)
 	e.GET("/stats", s.Stats)
 
 	// Host static demo pages if configured to do so
