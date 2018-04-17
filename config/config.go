@@ -12,6 +12,10 @@ var (
 	ServeWeb, _ = strconv.ParseBool(getEnv("SERVE_WEB", "false"))
 	// Port defines the port used by the api server
 	Port = getEnv("PORT", "8080")
+	// NoRestartOnBlacklist defines if dyno restart on blacklisted. use if you have a static ip
+	NoRestartOnBlacklist = getEnv("NO_RESTART", "false")
+	// RateLimitExcludedCIDR defines an array of cidr you want to exclude from rate limit
+	RateLimitExcludedCIDR = getEnv("RATE_LIMIT_EXCLUDED_CIDR", "")
 	// Env defines the environment where the service is being ran
 	Env = getEnv("ENVIRONMENT", "development")
 	// HTTPClientTimeout defines the HTTP client timeout used in requests

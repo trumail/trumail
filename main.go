@@ -34,10 +34,12 @@ func main() {
 	hostname := retrievePTR()
 	e := echo.New()
 	v := verifier.NewVerifier(hostname, config.SourceAddr)
-	// Restart Dyno if officially confirmed blacklisted
-	if v.Blacklisted() {
-		l.Info("Confirmed Blacklisted! - Restarting Dyno")
-		go log.Println(heroku.RestartApp())
+	if v.Blacklisted() { //check if blacklisted
+		if config.NoRestartOnBlacklist == "false" {
+			// Restart Dyno if officially confirmed blacklisted
+			l.Info("Confirmed Blacklisted! - Restarting Dyno")
+			go log.Println(heroku.RestartApp())
+		}
 	}
 	s := api.NewTrumailAPI(logger,
 		time.Duration(config.HTTPClientTimeout)*time.Second, v)
@@ -45,13 +47,15 @@ func main() {
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
 	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
+		l.Info("Set RateLimits to: " + string(config.RateLimitMax) + " " + string(config.RateLimitHours))
 		r := api.NewRateLimiter(config.RateLimitMax,
-			time.Hour*time.Duration(config.RateLimitHours))
+			time.Hour*time.Duration(config.RateLimitHours), config.RateLimitExcludedCIDR)
 		e.GET("/:format/:email", s.Lookup, r.RateLimit)
 		e.GET("/limit-status", r.LimitStatus)
 	} else {
 		e.GET("/:format/:email", s.Lookup)
 	}
+	e.GET("/ping", s.Ping)
 	e.GET("/stats", s.Stats)
 
 	// Host static demo pages if configured to do so

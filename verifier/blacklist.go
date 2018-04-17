@@ -37,6 +37,7 @@ func (v *Verifier) dnsBlacklisted(lists []string) bool {
 
 		// Perform a host lookup and return true if found
 		if addrs, _ := net.LookupHost(url); len(addrs) > 0 {
+			fmt.Println("IP " + ip + " found in list " + host)
 			return true
 		}
 	}

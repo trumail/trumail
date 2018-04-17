@@ -2,10 +2,12 @@ package api
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/zmap/go-iptree/iptree"
 )
 
 var (
@@ -18,9 +20,10 @@ var (
 // RateLimiter is a middleware for limiting request
 // speed to a maximum over a set interval
 type RateLimiter struct {
-	max      int64         // The maximum number of requests allowed in the interval
-	interval time.Duration // The duration to assert the max
-	ipMap    *sync.Map     // IP-Address -> ReqData
+	max                   int64         // The maximum number of requests allowed in the interval
+	interval              time.Duration // The duration to assert the max
+	ipMap                 *sync.Map     // IP-Address -> ReqData
+	RateLimitExcludedCIDR *iptree.IPTree
 }
 
 // ReqData contains recent request data
@@ -38,8 +41,15 @@ type LimitStatus struct {
 }
 
 // NewRateLimiter generates a new RateLimiter reference
-func NewRateLimiter(max int64, interval time.Duration) *RateLimiter {
-	return &RateLimiter{max: max, interval: interval, ipMap: &sync.Map{}}
+func NewRateLimiter(max int64, interval time.Duration, RateLimitExcludedCIDR string) *RateLimiter {
+	t := iptree.New()
+	if RateLimitExcludedCIDR != "" {
+		s := strings.Split(RateLimitExcludedCIDR, ",") // split the cidr list string to array
+		for _, element := range s {
+			t.AddByString(element, 1) // add item to map
+		}
+	}
+	return &RateLimiter{max: max, interval: interval, ipMap: &sync.Map{}, RateLimitExcludedCIDR: t}
 }
 
 // NewReqData generates a new ReqData reference with the
@@ -55,12 +65,19 @@ func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ip := c.RealIP()    // The requestors IP
 		rd := r.reqData(ip) // The requestors ReqData
+		isExcluded := false
+
+		if val, found, err := r.RateLimitExcludedCIDR.GetByString(ip); err == nil && found { //check if in rate limit whitelist
+			if val == 1 {
+				isExcluded = true
+			}
+		}
 
 		// Whether the ReqData is expired
 		valid := rd.start.After(time.Now().Add(-1 * r.interval))
 
 		// If the valid count for this timeframe exceeds the max
-		if valid && rd.count >= r.max {
+		if !isExcluded && valid && rd.count >= r.max {
 			return ErrRateLimitExceeded
 		}
 
