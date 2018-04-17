@@ -12,10 +12,10 @@ import (
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
 	"github.com/sdwolfe32/trumail/heroku"
-	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
 	"github.com/technosolutionscl/trumail/api"
 	"github.com/technosolutionscl/trumail/config"
+	"github.com/technosolutionscl/trumail/verifier"
 )
 
 func main() {
