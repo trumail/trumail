@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"io/ioutil"
 	"log"
 	"net"
@@ -10,11 +11,11 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
-	"github.com/sdwolfe32/trumail/api"
-	"github.com/sdwolfe32/trumail/config"
 	"github.com/sdwolfe32/trumail/heroku"
-	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
+	"github.com/technosolutionscl/trumail/api"
+	"github.com/technosolutionscl/trumail/config"
+	"github.com/technosolutionscl/trumail/verifier"
 )
 
 func main() {
@@ -46,12 +47,13 @@ func main() {
 	l.Info("Binding API endpoints to the router")
 	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
 		r := api.NewRateLimiter(config.RateLimitMax,
-			time.Hour*time.Duration(config.RateLimitHours))
+			time.Hour*time.Duration(config.RateLimitHours), config.RateLimitCIDRCustom)
 		e.GET("/:format/:email", s.Lookup, r.RateLimit)
 		e.GET("/limit-status", r.LimitStatus)
 	} else {
 		e.GET("/:format/:email", s.Lookup)
 	}
+	e.GET("/ping", s.Ping)
 	e.GET("/stats", s.Stats)
 
 	// Host static demo pages if configured to do so
@@ -69,8 +71,11 @@ func main() {
 // retrievePTR attempts to retrieve the PTR record for the IP
 // address retrieved via an API call on api.ipify.org
 func retrievePTR() string {
+	transport := http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, Proxy: http.ProxyFromEnvironment}
+	client := &http.Client{Transport: &transport}
+
 	// Request the IP from ipify
-	resp, err := http.Get("https://api.ipify.org/")
+	resp, err := client.Get("https://api.ipify.org/")
 	if err != nil {
 		log.Fatal("Failed to retrieve IP from api.ipify.org")
 	}

@@ -62,21 +62,37 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 	if len(records) == 0 {
 		return nil, errors.New("No MX records found")
 	}
-	addr := records[0].Host + ":25"
+	// Create a channel for receiving the first successful
+	// connection on
+	client := make(chan *smtp.Client, 1)
 
-	// TODO Connect to other SMTP servers concurrently and use the
-	// first successful connection to prevent trying to only
-	// communicate with a NOLISTING host
+	// Attempt to connect to all SMTP servers concurrently
+	for _, record := range records {
+		addr := record.Host + ":25"
+		go func() {
+			// Dial the server with a timeout
+			conn, err := net.DialTimeout("tcp", addr, time.Minute)
+			if err != nil {
+				return
+			}
 
-	// Dial the server with a timeout
-	conn, err := net.DialTimeout("tcp", addr, time.Minute)
-	if err != nil {
-		return nil, err
+			// Generate an smtp client form the connection
+			host, _, _ := net.SplitHostPort(addr)
+			sc, err := smtp.NewClient(conn, host)
+			if err != nil {
+				conn.Close()
+				return
+			}
+
+			// Place the connection on the channel or close it
+			select {
+			case client <- sc:
+			default:
+				sc.Close()
+			}
+		}()
 	}
-
-	// Generate an smtp client form the connection
-	host, _, _ := net.SplitHostPort(addr)
-	return smtp.NewClient(conn, host)
+	return <-client, nil
 }
 
 // IsDeliverable takes an email address and performs the operation of adding

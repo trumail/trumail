@@ -16,6 +16,8 @@ var (
 	Env = getEnv("ENVIRONMENT", "development")
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
 	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "25"))
+	// RateLimitCIDRCustom defines an array of cidr you want to exclude from rate limit "IP|max|hours" example: 192.168.0.0/16|0|0,172.16.0.0/12|0|0,10.0.0.0/8|0|0
+	RateLimitCIDRCustom = getEnv("RATE_LIMIT_CIDR", "")
 	// RateLimitMax is the maximum number of requests allowed in the
 	// specified interval
 	RateLimitMax, _ = strconv.ParseInt(getEnv("RATE_LIMIT_MAX", ""), 10, 64)

@@ -6,6 +6,7 @@ package httpclient
 // responses into interfaces
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -24,7 +25,7 @@ type Client struct {
 // timeout
 func New(timeout time.Duration, headers map[string]string) *Client {
 	return &Client{
-		Client:  &http.Client{Timeout: timeout},
+		Client:  &http.Client{Timeout: timeout, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, Proxy: http.ProxyFromEnvironment}},
 		Headers: headers,
 	}
 }
@@ -81,7 +82,6 @@ func (c *Client) bytes(method, url string, in interface{}) ([]byte, error) {
 			return nil, err
 		}
 	}
-
 	// Generate the request
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
