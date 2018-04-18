@@ -37,7 +37,7 @@ func main() {
 	// Restart Dyno if officially confirmed blacklisted
 	if v.Blacklisted() {
 		l.Info("Confirmed Blacklisted! - Restarting Dyno")
-		go log.Println(heroku.RestartApp())
+		go log.Println(heroku.RestartDyno())
 	}
 	s := api.NewTrumailAPI(logger,
 		time.Duration(config.HTTPClientTimeout)*time.Second, v)
