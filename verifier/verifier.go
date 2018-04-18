@@ -37,7 +37,7 @@ type Lookup struct {
 // VerifyTimeout performs an email verification, failing with an ErrTimeout
 // if a valid Lookup isn't produced within the timeout passed
 func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, error) {
-	ch := make(chan interface{})
+	ch := make(chan interface{}, 1)
 
 	// Create a goroutine that will attempt to connect to the SMTP server
 	go func() {

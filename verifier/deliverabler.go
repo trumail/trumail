@@ -30,7 +30,7 @@ func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error)
 	}
 
 	// Dial the SMTP server
-	client, err := dialSMTP(asciiDomain)
+	client, err := dialSMTPTimeout(asciiDomain, time.Minute)
 	if err != nil {
 		return nil, err
 	}
@@ -49,9 +49,10 @@ func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error)
 	return &Deliverabler{client, domain, hostname, sourceAddr}, nil
 }
 
-// dialSMTP receives a domain and attempts to dial the mail server having
-// retrieved one or more MX records
-func dialSMTP(domain string) (*smtp.Client, error) {
+// dialSMTPTimeout is a timeout wrapper for smtp.Dial. It attempts to dial an
+// SMTP server and fails with a timeout if the passed timeout is reached while
+// attempting to establish a new connection
+func dialSMTPTimeout(domain string, timeout time.Duration) (*smtp.Client, error) {
 	// Retrieve all MX records
 	records, err := net.LookupMX(domain)
 	if err != nil {
@@ -64,19 +65,32 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 	}
 	addr := records[0].Host + ":25"
 
-	// TODO Connect to other SMTP servers concurrently and use the
-	// first successful connection to prevent trying to only
-	// communicate with a NOLISTING host
+	// Channel holding the new smtp.Client or error
+	ch := make(chan interface{}, 1)
 
-	// Dial the server with a timeout
-	conn, err := net.DialTimeout("tcp", addr, time.Minute)
-	if err != nil {
-		return nil, err
+	// Dial the new smtp connection
+	go func() {
+		if client, err := smtp.Dial(addr); err != nil {
+			ch <- err
+		} else {
+			ch <- client
+		}
+	}()
+
+	// Retrieve the smtp client from our client channel or timeout
+	select {
+	case res := <-ch:
+		switch r := res.(type) {
+		case *smtp.Client:
+			return r, nil
+		case error:
+			return nil, r
+		default:
+			return nil, errors.New("Unexpected response dialing SMTP server")
+		}
+	case <-time.After(timeout):
+		return nil, errors.New("Timeout connecting to mail-exchanger")
 	}
-
-	// Generate an smtp client form the connection
-	host, _, _ := net.SplitHostPort(addr)
-	return smtp.NewClient(conn, host)
 }
 
 // IsDeliverable takes an email address and performs the operation of adding

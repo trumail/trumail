@@ -1,5 +1,5 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-17T23:20:49.119948-07:00
+updated: 2018-04-18T08:45:33.891427-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -41,7 +41,7 @@ imports:
   - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
-  version: 84348c2dc81a524fe94aaea3e3d9f967135338ef
+  version: d41e8174641f662c5a2d1c7a5f9e828788eb8706
   subpackages:
   - context
   - idna

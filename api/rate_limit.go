@@ -65,7 +65,7 @@ func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Allocate the users IP and ReqData
-		ip := c.RealIP()
+		ip := realIP(c)
 		rd := r.reqData(ip)
 
 		// Whether the ReqData is expired
@@ -89,9 +89,8 @@ func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 
 // LimitStatus retrieves and returns general Trumail statistics
 func (r *RateLimiter) LimitStatus(c echo.Context) error {
-	// Allocate the users IP and ReqData
-	ip := c.RealIP()
-	rd := r.reqData(ip)
+	// Allocate the users ReqData
+	rd := r.reqData(realIP(c))
 
 	// Return the current rate limit standing
 	return c.JSON(http.StatusOK, &LimitStatus{
@@ -99,6 +98,21 @@ func (r *RateLimiter) LimitStatus(c echo.Context) error {
 		Interval: r.interval,
 		Current:  rd.count,
 	})
+}
+
+// realIP checks for a Cloudflare connecting IP on the request
+// and returns it if found, otherwise it returns the IP echo
+// determines from X-Forwarded-For
+func realIP(c echo.Context) string {
+	// Allocate the Cloudflare connecting IP
+	cfip := c.Request().Header.Get("CF-Connecting-IP")
+
+	// Return it or return the default IP
+	if cfip != "" {
+		return cfip
+	} else {
+		return c.RealIP()
+	}
 }
 
 // reqData returns ReqData found in the syncmap keyed
