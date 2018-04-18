@@ -53,6 +53,7 @@ func main() {
 		e.GET("/:format/:email", s.Lookup)
 	}
 	e.GET("/stats", s.Stats)
+	e.GET("/health", s.Health)
 
 	// Host static demo pages if configured to do so
 	if config.ServeWeb {
