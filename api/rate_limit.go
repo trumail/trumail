@@ -8,6 +8,9 @@ import (
 	"github.com/labstack/echo"
 )
 
+// TrumailToken is the key to be used on the Trumail Token header
+const TrumailToken = "X-Trumail-Token"
+
 var (
 	// ErrRateLimitExceeded is thrown when an IP exceeds the
 	// specified rate-limit
@@ -18,6 +21,7 @@ var (
 // RateLimiter is a middleware for limiting request
 // speed to a maximum over a set interval
 type RateLimiter struct {
+	token    string        // A token that can be used to bypass the rate limit
 	max      int64         // The maximum number of requests allowed in the interval
 	interval time.Duration // The duration to assert the max
 	ipMap    *sync.Map     // IP-Address -> ReqData
@@ -38,8 +42,8 @@ type LimitStatus struct {
 }
 
 // NewRateLimiter generates a new RateLimiter reference
-func NewRateLimiter(max int64, interval time.Duration) *RateLimiter {
-	return &RateLimiter{max: max, interval: interval, ipMap: &sync.Map{}}
+func NewRateLimiter(token string, max int64, interval time.Duration) *RateLimiter {
+	return &RateLimiter{token, max, interval, &sync.Map{}}
 }
 
 // NewReqData generates a new ReqData reference with the
@@ -53,8 +57,16 @@ func (f *ReqData) Count() { f.count++ }
 // many requests in the defined period of time.
 func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ip := c.RealIP()    // The requestors IP
-		rd := r.reqData(ip) // The requestors ReqData
+		// First check the header for the existence of the Trumail Token
+		if r.token != "" {
+			if c.Request().Header.Get(TrumailToken) == r.token {
+				return next(c)
+			}
+		}
+
+		// Allocate the users IP and ReqData
+		ip := c.RealIP()
+		rd := r.reqData(ip)
 
 		// Whether the ReqData is expired
 		valid := rd.start.After(time.Now().Add(-1 * r.interval))
@@ -77,8 +89,9 @@ func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 
 // LimitStatus retrieves and returns general Trumail statistics
 func (r *RateLimiter) LimitStatus(c echo.Context) error {
-	ip := c.RealIP()    // The requestors IP
-	rd := r.reqData(ip) // The requestors ReqData
+	// Allocate the users IP and ReqData
+	ip := c.RealIP()
+	rd := r.reqData(ip)
 
 	// Return the current rate limit standing
 	return c.JSON(http.StatusOK, &LimitStatus{

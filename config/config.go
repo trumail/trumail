@@ -21,6 +21,8 @@ var (
 	RateLimitMax, _ = strconv.ParseInt(getEnv("RATE_LIMIT_MAX", ""), 10, 64)
 	// RateLimitHours is the interval in which requests will be rate limited
 	RateLimitHours, _ = strconv.ParseInt(getEnv("RATE_LIMIT_HOURS", ""), 10, 64)
+	// Token is an API token that will bypass rate-limiting
+	Token = getEnv("TOKEN", "")
 )
 
 // getEnv retrieves variables from the environment and falls back

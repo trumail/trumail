@@ -45,7 +45,7 @@ func main() {
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
 	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
-		r := api.NewRateLimiter(config.RateLimitMax,
+		r := api.NewRateLimiter(config.Token, config.RateLimitMax,
 			time.Hour*time.Duration(config.RateLimitHours))
 		e.GET("/:format/:email", s.Lookup, r.RateLimit)
 		e.GET("/limit-status", r.LimitStatus)
