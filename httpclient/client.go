@@ -36,6 +36,12 @@ func (c *Client) Head(url string) error {
 	return err
 }
 
+// GetReader performs a GET request using the passed URL
+// and returns the io.ReadCloser body
+func (c *Client) GetReader(url string) (io.ReadCloser, error) {
+	return c.readCloser(http.MethodGet, url, nil)
+}
+
 // GetBytes performs a GET request using the passed URL
 func (c *Client) GetBytes(url string) ([]byte, error) {
 	// Execute the request and return the response
@@ -74,6 +80,17 @@ func (c *Client) Delete(url string) error {
 // bytes executes the passed request using the Client
 // http.Client, returning all the bytes read from the response
 func (c *Client) bytes(method, url string, in interface{}) ([]byte, error) {
+	r, err := c.readCloser(method, url, in)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	return ioutil.ReadAll(r)
+}
+
+// readCloser executes the passed request using the Client
+// http.Client, returning the io.ReadCloser from the response
+func (c *Client) readCloser(method, url string, in interface{}) (io.ReadCloser, error) {
 	// Marshal a request body if one exists
 	var body io.ReadWriter
 	if in != nil {
@@ -98,7 +115,6 @@ func (c *Client) bytes(method, url string, in interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
 	// Check the status code for an OK
 	if res.StatusCode >= 400 {
@@ -106,5 +122,5 @@ func (c *Client) bytes(method, url string, in interface{}) ([]byte, error) {
 	}
 
 	// Decode and return the bytes
-	return ioutil.ReadAll(res.Body)
+	return res.Body, nil
 }

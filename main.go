@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -54,6 +56,7 @@ func main() {
 	}
 	e.GET("/stats", s.Stats)
 	e.GET("/health", s.Health)
+	e.GET("/debug", Debug)
 
 	// Host static demo pages if configured to do so
 	if config.ServeWeb {
@@ -65,6 +68,16 @@ func main() {
 	// Listen and Serve
 	l.WithField("port", config.Port).Info("Listening and Serving")
 	l.Fatal(e.Start(":" + config.Port))
+}
+
+// Debug is an endpoint for debugging runaway goroutines
+func Debug(c echo.Context) error {
+	if c.Request().Header.Get("X-Debug-Token") != config.Token {
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
+	var buf bytes.Buffer
+	pprof.Lookup("goroutine").WriteTo(&buf, 1)
+	return c.String(http.StatusOK, buf.String())
 }
 
 // retrievePTR attempts to retrieve the PTR record for the IP
