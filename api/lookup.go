@@ -29,6 +29,11 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	email := c.Param("email")
 	l = l.WithField("email", email)
 
+	// Check cache for a successful lookup
+	if lookup, ok := t.lookupCache.Get(email); ok {
+		return t.encodeResponse(c, http.StatusOK, lookup)
+	}
+
 	// Performs the full email verification
 	l.Debug("Performing new email verification")
 	lookup, err := t.verifier.VerifyTimeout(email, t.timeout)
@@ -43,6 +48,9 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 		return t.encodeResponse(c, http.StatusInternalServerError, err)
 	}
 	l = l.WithField("lookup", lookup)
+
+	// Store the lookup in cache
+	t.lookupCache.SetDefault(email, lookup)
 
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")
