@@ -21,7 +21,7 @@ var (
 	RateLimitMax, _ = strconv.ParseInt(getEnv("RATE_LIMIT_MAX", ""), 10, 64)
 	// RateLimitHours is the interval in which requests will be rate limited
 	RateLimitHours, _ = strconv.ParseInt(getEnv("RATE_LIMIT_HOURS", ""), 10, 64)
-	// Token is an API token header (X-Trumail-Token) that can bypass rate-limiting
+	// Token is an API token header (X-Auth-Token) that can bypass rate-limiting
 	Token = getEnv("TOKEN", "")
 )
 

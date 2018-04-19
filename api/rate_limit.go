@@ -8,8 +8,8 @@ import (
 	"github.com/labstack/echo"
 )
 
-// TrumailToken is the key to be used on the Trumail Token header
-const TrumailToken = "X-Trumail-Token"
+// AuthToken is the key to be used on the Trumail Token header
+const AuthToken = "X-Auth-Token"
 
 var (
 	// ErrRateLimitExceeded is thrown when an IP exceeds the
@@ -59,7 +59,7 @@ func (r *RateLimiter) RateLimit(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// First check the header for the existence of the Trumail Token
 		if r.token != "" {
-			if c.Request().Header.Get(TrumailToken) == r.token {
+			if c.Request().Header.Get(AuthToken) == r.token {
 				return next(c)
 			}
 		}
