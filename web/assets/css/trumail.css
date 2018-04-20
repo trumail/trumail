@@ -6,6 +6,8 @@ body {
     font-family: 'Open Sans', sans-serif;
     font-weight: 400;
     font-size: 15px;
+    margin: 0;
+    padding: 0;
     height: 100%;
 }
 
@@ -75,11 +77,19 @@ a:hover {
     padding-bottom: 20px;
 }
 
-.banner{
+.banner {
     background-color: #2185d0;
     color: #efefef;
     text-align: center;
     padding: 10px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 101;
+}
+
+.banner-padding {
+    padding-top: 44px;
 }
 
 .mail-pattern {
