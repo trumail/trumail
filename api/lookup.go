@@ -2,11 +2,18 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	tinystat "github.com/sdwolfe32/tinystat/client"
 	"github.com/sdwolfe32/trumail/verifier"
+)
+
+const (
+	FormatJSON  = "JSON"
+	FormatJSONP = "JSONP"
+	FormatXML   = "XML"
 )
 
 var (
@@ -31,7 +38,7 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// Check cache for a successful lookup
 	if lookup, ok := t.lookupCache.Get(email); ok {
-		return t.encodeResponse(c, http.StatusOK, lookup)
+		return t.encodeRes(c, http.StatusOK, lookup)
 	}
 
 	// Performs the full email verification
@@ -40,12 +47,12 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	if err != nil {
 		l.WithError(err).Error("Failed to perform verification")
 		if le, ok := err.(*verifier.LookupError); ok {
-			return t.encodeResponse(c, http.StatusInternalServerError, le)
+			return t.encodeRes(c, http.StatusInternalServerError, le)
 		}
 		if err.Error() == verifier.ErrEmailParseFailure {
-			return t.encodeResponse(c, http.StatusBadRequest, err)
+			return t.encodeRes(c, http.StatusBadRequest, err)
 		}
-		return t.encodeResponse(c, http.StatusInternalServerError, err)
+		return t.encodeRes(c, http.StatusInternalServerError, err)
 	}
 	l = l.WithField("lookup", lookup)
 
@@ -54,49 +61,53 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")
-	return t.encodeResponse(c, http.StatusOK, lookup)
+	return t.encodeRes(c, http.StatusOK, lookup)
 }
 
-// encodeResponse encodes the passed response using the "format" and
+// encodeRes encodes the passed response using the "format" and
 // "callback" parameters on the passed echo.Context
-func (t *TrumailAPI) encodeResponse(c echo.Context, code int, res interface{}) error {
-	// Send metrics of successful response
-	if le, ok := res.(*verifier.Lookup); ok {
-		if le.Deliverable {
-			tinystat.CreateAction("deliverable")
-		} else {
-			tinystat.CreateAction("undeliverable")
-		}
-	}
-
-	// Send metrics of error response
-	if e, ok := res.(error); ok {
-		if le, ok := e.(*verifier.LookupError); ok {
-			// LookupError with report == true
-			if le.Report {
-				raven.CaptureError(e, nil) // Sentry metrics
-				tinystat.CreateAction("error")
-			}
-		} else {
-			// Standard error
-			raven.CaptureError(e, nil) // Sentry metrics
-			tinystat.CreateAction("error")
-		}
-	}
+func (t *TrumailAPI) encodeRes(c echo.Context, code int, res interface{}) error {
+	// Submit metrics data
+	count(res)
 
 	// Encode the in requested format
-	switch c.Param("format") {
-	case "json":
+	switch strings.ToUpper(c.Param("format")) {
+	case FormatJSON:
 		return c.JSON(code, res)
-	case "jsonp":
+	case FormatJSONP:
 		callback := c.QueryParam("callback")
 		if callback == "" {
 			return ErrInvalidCallback
 		}
 		return c.JSONP(code, callback, res)
-	case "xml":
+	case FormatXML:
 		return c.XML(code, res)
 	default:
 		return ErrUnsupportedFormat
+	}
+}
+
+// count calls out to the various metrics APIs we have set up in order
+// to submit metrics data based on the response
+func count(res interface{}) {
+	switch r := res.(type) {
+	case *verifier.Lookup:
+		if r.Deliverable {
+			tinystat.CreateAction("deliverable")
+		} else {
+			tinystat.CreateAction("undeliverable")
+		}
+	case error:
+		if le, ok := r.(*verifier.LookupError); ok {
+			// LookupError with report == true
+			if le.Report {
+				raven.CaptureError(r, nil) // Sentry metrics
+				tinystat.CreateAction("error")
+			}
+		} else {
+			// Standard error
+			raven.CaptureError(r, nil) // Sentry metrics
+			tinystat.CreateAction("error")
+		}
 	}
 }
