@@ -115,11 +115,12 @@ func smtpDialTimeout(addr string, timeout time.Duration) (*smtp.Client, error) {
 
 	// Dial the new smtp connection
 	go func() {
-		if client, err := smtp.Dial(addr); err != nil {
+		client, err := smtp.Dial(addr)
+		if err != nil {
 			ch <- err
-		} else {
-			ch <- client
+			return
 		}
+		ch <- client
 	}()
 
 	// Retrieve the smtp client from our client channel or timeout

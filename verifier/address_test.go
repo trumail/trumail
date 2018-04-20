@@ -16,6 +16,18 @@ func (s *addressSuite) TestParseAddress(c *check.C) {
 	c.Assert(address.Username, check.Equals, "email_username")
 	c.Assert(address.Domain, check.Equals, "domain.com")
 	c.Assert(address.Address, check.Equals, "email_username@domain.com")
+	c.Assert(address.MD5Hash, check.Equals, "629b2a45027be2158761fecb17eb79d6")
+}
+
+func (s *addressSuite) TestParseAddress2(c *check.C) {
+	email := "email_username@DoMAIn.CoM"
+	address, err := ParseAddress(email)
+
+	c.Assert(err, check.IsNil)
+	c.Assert(address.Username, check.Equals, "email_username")
+	c.Assert(address.Domain, check.Equals, "domain.com")
+	c.Assert(address.Address, check.Equals, "email_username@domain.com")
+	c.Assert(address.MD5Hash, check.Equals, "629b2a45027be2158761fecb17eb79d6")
 }
 
 func (s *addressSuite) TestParseAddressForUpperCaseEmails(c *check.C) {
@@ -23,9 +35,10 @@ func (s *addressSuite) TestParseAddressForUpperCaseEmails(c *check.C) {
 	address, err := ParseAddress(email)
 
 	c.Assert(err, check.IsNil)
-	c.Assert(address.Username, check.Equals, "email_username")
+	c.Assert(address.Username, check.Equals, "EMAIL_USERNAME")
 	c.Assert(address.Domain, check.Equals, "domain.com")
-	c.Assert(address.Address, check.Equals, "email_username@domain.com")
+	c.Assert(address.Address, check.Equals, "EMAIL_USERNAME@domain.com")
+	c.Assert(address.MD5Hash, check.Equals, "94d8a553082c902d086c47bd40ccf3c1")
 }
 
 func (s *addressSuite) TestParseAddressInvalidEmail(c *check.C) {
@@ -34,15 +47,4 @@ func (s *addressSuite) TestParseAddressInvalidEmail(c *check.C) {
 
 	c.Assert(err, check.Not(check.IsNil))
 	c.Assert(address, check.IsNil)
-}
-
-func (s *addressSuite) TestAddressMD5Method(c *check.C) {
-	address := Address{
-		Username: "user",
-		Domain:   "email.com",
-		Address:  "user@email.com",
-	}
-
-	md5 := address.MD5()
-	c.Assert(md5, check.Equals, "b58c6f14d292556214bd64909bcdb118")
 }

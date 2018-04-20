@@ -32,7 +32,7 @@ func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
 		Address:  "username@domain.com",
 	}
 
-	configureRequestMock(address.MD5(), http.StatusOK)
+	configureRequestMock(address.MD5Hash, http.StatusOK)
 	defer gock.Off()
 
 	c.Assert(v.HasGravatar(address), check.Equals, true)
@@ -46,7 +46,7 @@ func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
 		Address:  "username@domain.com",
 	}
 
-	gockResponse := configureRequestMock(address.MD5(), 200)
+	gockResponse := configureRequestMock(address.MD5Hash, 200)
 	gockResponse.SetError(errors.New("Some error while requesting"))
 	defer gock.Off()
 
@@ -61,7 +61,7 @@ func (s *gravatarSuite) TestHasGravatarStatusNotOk(c *check.C) {
 		Address:  "username@domain.com",
 	}
 
-	configureRequestMock(address.MD5(), http.StatusBadRequest)
+	configureRequestMock(address.MD5Hash, http.StatusBadRequest)
 	defer gock.Off()
 
 	c.Assert(v.HasGravatar(address), check.Equals, false)

@@ -34,14 +34,14 @@ type Lookup struct {
 	Gravatar    bool `json:"gravatar" xml:"gravatar"`
 }
 
-// VerifyTimeout performs an email verification, failing with an ErrTimeout
+// VerifyAddressTimeout performs an email verification, failing with an ErrTimeout
 // if a valid Lookup isn't produced within the timeout passed
-func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, error) {
+func (v *Verifier) VerifyAddressTimeout(address *Address, timeout time.Duration) (*Lookup, error) {
 	ch := make(chan interface{}, 1)
 
 	// Create a goroutine that will attempt to connect to the SMTP server
 	go func() {
-		d, err := v.Verify(email)
+		d, err := v.VerifyAddress(address)
 		if err != nil {
 			ch <- err
 		} else {
@@ -65,17 +65,24 @@ func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, 
 	}
 }
 
-// Verify parses the passed email and verifies it's deliverability,
-// returning any errors that are encountered
-func (v *Verifier) Verify(email string) (*Lookup, error) {
+// VerifyEmail parses the passed email address and verifies it's
+// deliverability, returning any errors that are encountered
+func (v *Verifier) VerifyEmail(email string) (*Lookup, error) {
 	// First parse the email string passed
 	a, err := ParseAddress(email)
 	if err != nil {
 		return nil, newLookupError(ErrEmailParseFailure, ErrEmailParseFailure, false)
 	}
 
+	// Perform the verification with the parsed address
+	return v.VerifyAddress(a)
+}
+
+// VerifyAddress performs an email verification on the passed
+// Address
+func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
 	// Attempt to form an SMTP Connection
-	del, err := NewDeliverabler(a.Domain, v.hostname, v.sourceAddr)
+	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
 		return nil, parseSTDErr(err)
 	}
@@ -83,18 +90,18 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 
 	// Declare the lookup to be populated and returned
 	var l Lookup
-	l.Address = *a
+	l.Address = *address
 
 	// Retrieve the catchall status
 	if del.HasCatchAll(3) {
 		l.CatchAll = true
 		l.Deliverable = true
 	}
-	l.Disposable = v.disp.IsDisposable(a.Domain)
+	l.Disposable = v.disp.IsDisposable(address.Domain)
 
 	// Perform the main address verification if not a catchall server
 	if !l.CatchAll {
-		if err := del.IsDeliverable(a.Address, 3); err != nil {
+		if err := del.IsDeliverable(address.Address, 3); err != nil {
 			le := parseRCPTErr(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
@@ -109,6 +116,6 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	}
 
 	// Check if the email has a Gravatar associated with it
-	l.Gravatar = v.HasGravatar(a)
+	l.Gravatar = v.HasGravatar(address)
 	return &l, nil
 }

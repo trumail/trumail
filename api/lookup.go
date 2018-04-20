@@ -31,33 +31,33 @@ func (t *TrumailAPI) Lookup(c echo.Context) error {
 	l := t.log.WithField("handler", "Lookup")
 	l.Debug("New Lookup request received")
 
-	// Decode the request
+	// Decode the email from the request
 	l.Debug("Decoding the request")
 	email := c.Param("email")
 	l = l.WithField("email", email)
 
+	// Parse the address passed
+	address, err := verifier.ParseAddress(email)
+	if err != nil {
+		return t.encodeRes(c, http.StatusBadRequest, err)
+	}
+
 	// Check cache for a successful lookup
-	if lookup, ok := t.lookupCache.Get(email); ok {
+	if lookup, ok := t.lookupCache.Get(address.MD5Hash); ok {
 		return t.encodeRes(c, http.StatusOK, lookup)
 	}
 
 	// Performs the full email verification
 	l.Debug("Performing new email verification")
-	lookup, err := t.verifier.VerifyTimeout(email, t.timeout)
+	lookup, err := t.verifier.VerifyAddressTimeout(address, t.timeout)
 	if err != nil {
 		l.WithError(err).Error("Failed to perform verification")
-		if le, ok := err.(*verifier.LookupError); ok {
-			return t.encodeRes(c, http.StatusInternalServerError, le)
-		}
-		if err.Error() == verifier.ErrEmailParseFailure {
-			return t.encodeRes(c, http.StatusBadRequest, err)
-		}
 		return t.encodeRes(c, http.StatusInternalServerError, err)
 	}
 	l = l.WithField("lookup", lookup)
 
 	// Store the lookup in cache
-	t.lookupCache.SetDefault(email, lookup)
+	t.lookupCache.SetDefault(address.MD5Hash, lookup)
 
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")
