@@ -98,6 +98,7 @@ func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
 		if le != nil {
 			if le.Message == ErrNoSuchHost {
 				l.HostExists = false
+				return l, nil
 			}
 		}
 		return nil, parseSTDErr(err)
@@ -117,9 +118,9 @@ func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
 			if le != nil {
 				if le.Message == ErrFullInbox {
 					l.FullInbox = true // Set FullInbox and move on
-				} else {
-					return nil, le // Return if it's a legit error
+					return l, nil
 				}
+				return nil, le // Return if it's a legit error
 			}
 		} else {
 			l.Deliverable = true
