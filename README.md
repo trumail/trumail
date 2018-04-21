@@ -1,5 +1,5 @@
 # Trumail
-## DEPRECATION NOTICE ON 7/20: The old lookup endpoint https://trumail.io/:format/:email is now https://api.trumail.io/v1/:format/:email
+## DEPRECATION NOTICE: The old lookup endpoint https://trumail.io/{format}/{email} is now https://api.trumail.io/v1/{format}/{email}
 
 [![CircleCI](https://circleci.com/gh/sdwolfe32/trumail.svg?style=svg)](https://circleci.com/gh/sdwolfe32/trumail)
 [![GoDoc](https://godoc.org/github.com/sdwolfe32/trumail/verifier?status.svg)](https://godoc.org/github.com/sdwolfe32/trumail/verifier)
