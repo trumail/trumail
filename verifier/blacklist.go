@@ -104,7 +104,7 @@ var blacklists = []string{
 	"noptr.spamrats.com",
 	"spam.spamrats.com",
 	"dyna.spamrats.com",
-	"bl.spamstinks.com",
+	// "bl.spamstinks.com",
 	// "0spam-killlist.fusionzero.com",
 	// "0spam.fusionzero.com",
 	// "access.redhawk.org",
