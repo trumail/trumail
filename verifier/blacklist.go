@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strings"
 )
@@ -37,6 +38,7 @@ func (v *Verifier) dnsBlacklisted(lists []string) bool {
 
 		// Perform a host lookup and return true if found
 		if addrs, _ := net.LookupHost(url); len(addrs) > 0 {
+			log.Println("Blocked by ", host)
 			return true
 		}
 	}
@@ -61,6 +63,7 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 		le := parseRCPTErr(err)
 		if le != nil && le.Message == ErrBlocked &&
 			insContains(le.Details, selector) {
+			log.Println("Blocked by ", selector)
 			return true
 		}
 		return false
@@ -73,6 +76,7 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 		le := parseRCPTErr(err)
 		if le != nil && le.Message == ErrBlocked &&
 			insContains(le.Details, selector) {
+			log.Println("Blocked by ", selector)
 			return true
 		}
 		return false
