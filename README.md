@@ -10,7 +10,7 @@ NOTE: It is highly recommended (due to potential Heroku IP blacklisting resultin
 
 ## Using the API (public or self-hosted)
 
-Using the API is very simple. All that's needed to validate an address is to send a `GET` request using the below URL with one of our three supported formats (json/jsonp(with callback query param)/xml).
+Using the API is very simple. All that's needed to validate an address is to send a `GET` request using the below URL with one of our three supported formats (json/jsonp(with "callback" (all lowercase) queryparam)/xml).
 ```
 https://api.trumail.io/v1/{format}/{email}
 ```
