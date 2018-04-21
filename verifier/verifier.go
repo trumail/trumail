@@ -86,6 +86,7 @@ func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
 	// all inital field values
 	l := &Lookup{
 		Address:    *address,
+		HostExists: true,
 		Disposable: v.disp.IsDisposable(address.Domain),
 		Gravatar:   v.HasGravatar(address),
 	}
