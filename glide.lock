@@ -1,5 +1,5 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-20T00:25:58.299108-07:00
+updated: 2018-04-20T20:44:20.767944-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -25,6 +25,8 @@ imports:
   version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
+- name: github.com/sdwolfe32/httpclient
+  version: 8e49d90277dbc55a3451bc7e56e2244e4eb11bd6
 - name: github.com/sdwolfe32/tinystat
   version: 376246d4faa5a51dd868d710bc8b920d30f6edf8
   subpackages:
@@ -37,22 +39,17 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: d6449816ce06963d9d136eee5a56fca5b0616e7e
+  version: e73bf333ef8920dbb52ad18d4bd38ad9d9bc76d7
   subpackages:
   - acme
   - acme/autocert
   - ssh/terminal
 - name: golang.org/x/net
-  version: d41e8174641f662c5a2d1c7a5f9e828788eb8706
+  version: 5f9ae10d9af5b1c89ae6904293b14b064d4ada23
   subpackages:
-  - context
   - idna
-- name: golang.org/x/sync
-  version: 1d60e4601c6fd243af51cc01ddf169918a5407ca
-  subpackages:
-  - errgroup
 - name: golang.org/x/sys
-  version: a2a45943ae67364d56c5d7d62dee78cff16c8dc8
+  version: 79b0c6888797020a994db17c8510466c72fe75d9
   subpackages:
   - unix
   - windows

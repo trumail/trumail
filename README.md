@@ -1,4 +1,5 @@
-# Trumail 
+# Trumail
+## DEPRECATION NOTICE ON 7/20: The old lookup endpoint https://trumail.io/:format/:email is now https://api.trumail.io/v1/:format/:email
 
 [![CircleCI](https://circleci.com/gh/sdwolfe32/trumail.svg?style=svg)](https://circleci.com/gh/sdwolfe32/trumail)
 [![GoDoc](https://godoc.org/github.com/sdwolfe32/trumail/verifier?status.svg)](https://godoc.org/github.com/sdwolfe32/trumail/verifier)
@@ -11,7 +12,7 @@ NOTE: It is highly recommended (due to potential Heroku IP blacklisting resultin
 
 Using the API is very simple. All that's needed to validate an address is to send a `GET` request using the below URL with one of our three supported formats (json/jsonp(with callback query param)/xml).
 ```
-https://trumail.io/{format}/{email}
+https://api.trumail.io/v1/{format}/{email}
 ```
 
 ## Using the library

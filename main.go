@@ -41,7 +41,7 @@ func main() {
 		l.Info("Confirmed Blacklisted! - Restarting Dyno")
 		go log.Println(heroku.RestartDyno())
 	}
-	s := api.NewTrumailAPI(logger,
+	s := api.NewService(logger,
 		time.Duration(config.HTTPClientTimeout)*time.Second, v)
 
 	// Bind endpoints to router
@@ -49,21 +49,13 @@ func main() {
 	if config.RateLimitHours != 0 && config.RateLimitMax != 0 {
 		r := api.NewRateLimiter(config.Token, config.RateLimitMax,
 			time.Hour*time.Duration(config.RateLimitHours))
-		e.GET("/:format/:email", s.Lookup, r.RateLimit)
-		e.GET("/limit-status", r.LimitStatus)
+		e.GET("/v1/:format/:email", s.Lookup, r.RateLimit)
+		e.GET("/v1/limit-status", r.LimitStatus)
 	} else {
-		e.GET("/:format/:email", s.Lookup)
+		e.GET("/v1/:format/:email", s.Lookup)
 	}
-	e.GET("/stats", s.Stats)
-	e.GET("/health", s.Health)
-	e.GET("/debug", Debug)
-
-	// Host static demo pages if configured to do so
-	if config.ServeWeb {
-		l.Info("Serving web UI on index")
-		e.Static("/", "web")
-		e.Static("/assets", "web/assets")
-	}
+	e.GET("/v1/health", s.Health)
+	e.GET("/v1/debug", Debug)
 
 	// Listen and Serve
 	l.WithField("port", config.Port).Info("Listening and Serving")

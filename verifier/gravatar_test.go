@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sdwolfe32/trumail/httpclient"
-	"gopkg.in/check.v1"
-	"gopkg.in/h2non/gock.v1"
+	"github.com/sdwolfe32/httpclient"
+	check "gopkg.in/check.v1"
+	gock "gopkg.in/h2non/gock.v1"
 )
 
 type gravatarSuite struct{}
@@ -19,9 +19,7 @@ func Test(t *testing.T) { check.TestingT(t) } // Just to make discoverable
 
 func configureRequestMock(addressMD5 string, statusCode int) *gock.Response {
 	url := "https://en.gravatar.com/" + addressMD5 + ".json"
-	return gock.New(url).
-		Head("").
-		Reply(statusCode)
+	return gock.New(url).Head("").Reply(statusCode)
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {

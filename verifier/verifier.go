@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"time"
 
-	"github.com/sdwolfe32/trumail/httpclient"
+	"github.com/sdwolfe32/httpclient"
 )
 
 // Verifier contains all dependencies needed to perform educated email
@@ -29,6 +29,7 @@ type Lookup struct {
 	Address
 	Deliverable bool `json:"deliverable" xml:"deliverable"`
 	FullInbox   bool `json:"fullInbox" xml:"fullInbox"`
+	HostExists  bool `json:"hostExists" xml:"hostExists"`
 	CatchAll    bool `json:"catchAll" xml:"catchAll"`
 	Disposable  bool `json:"disposable" xml:"disposable"`
 	Gravatar    bool `json:"gravatar" xml:"gravatar"`
@@ -58,10 +59,10 @@ func (v *Verifier) VerifyAddressTimeout(address *Address, timeout time.Duration)
 		case error:
 			return nil, r
 		default:
-			return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse, false)
+			return nil, newLookupError(ErrUnexpectedResponse, ErrUnexpectedResponse)
 		}
 	case <-time.After(timeout):
-		return nil, newLookupError(ErrTimeout, ErrTimeout, false)
+		return nil, newLookupError(ErrTimeout, ErrTimeout)
 	}
 }
 
@@ -71,7 +72,7 @@ func (v *Verifier) VerifyEmail(email string) (*Lookup, error) {
 	// First parse the email string passed
 	a, err := ParseAddress(email)
 	if err != nil {
-		return nil, newLookupError(ErrEmailParseFailure, ErrEmailParseFailure, false)
+		return nil, newLookupError(ErrEmailParseFailure, ErrEmailParseFailure)
 	}
 
 	// Perform the verification with the parsed address
@@ -81,23 +82,32 @@ func (v *Verifier) VerifyEmail(email string) (*Lookup, error) {
 // VerifyAddress performs an email verification on the passed
 // Address
 func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
+	// Declare the lookup to be populated and populate
+	// all inital field values
+	l := &Lookup{
+		Address:    *address,
+		Disposable: v.disp.IsDisposable(address.Domain),
+		Gravatar:   v.HasGravatar(address),
+	}
+
 	// Attempt to form an SMTP Connection
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
+		le := parseRCPTErr(err)
+		if le != nil {
+			if le.Message == ErrNoSuchHost {
+				l.HostExists = false
+			}
+		}
 		return nil, parseSTDErr(err)
 	}
 	defer del.Close() // Defer close the SMTP connection
-
-	// Declare the lookup to be populated and returned
-	var l Lookup
-	l.Address = *address
 
 	// Retrieve the catchall status
 	if del.HasCatchAll(3) {
 		l.CatchAll = true
 		l.Deliverable = true
 	}
-	l.Disposable = v.disp.IsDisposable(address.Domain)
 
 	// Perform the main address verification if not a catchall server
 	if !l.CatchAll {
@@ -114,8 +124,5 @@ func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
 			l.Deliverable = true
 		}
 	}
-
-	// Check if the email has a Gravatar associated with it
-	l.Gravatar = v.HasGravatar(address)
-	return &l, nil
+	return l, nil
 }

@@ -36,9 +36,9 @@ type ReqData struct {
 // LimitStatus is returned when a request is made for an
 // IPs current rate limit standing
 type LimitStatus struct {
+	Current  int64         `json:"current"`
 	Max      int64         `json:"max"`
 	Interval time.Duration `json:"interval"`
-	Current  int64         `json:"current"`
 }
 
 // NewRateLimiter generates a new RateLimiter reference
@@ -94,9 +94,9 @@ func (r *RateLimiter) LimitStatus(c echo.Context) error {
 
 	// Return the current rate limit standing
 	return c.JSON(http.StatusOK, &LimitStatus{
+		Current:  rd.count,
 		Max:      r.max,
 		Interval: r.interval,
-		Current:  rd.count,
 	})
 }
 

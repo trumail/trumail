@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sdwolfe32/trumail/httpclient"
+	"github.com/sdwolfe32/httpclient"
 )
 
 // baseURL is the base URL of the Heroku API

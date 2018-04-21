@@ -6,14 +6,12 @@ import (
 )
 
 var (
-	// SourceAddr defines the address used on verifier
-	SourceAddr = getEnv("SOURCE_ADDR", "admin@gmail.com")
-	// ServeWeb defines if the web static site should be served
-	ServeWeb, _ = strconv.ParseBool(getEnv("SERVE_WEB", "false"))
 	// Port defines the port used by the api server
 	Port = getEnv("PORT", "8080")
 	// Env defines the environment where the service is being ran
 	Env = getEnv("ENVIRONMENT", "development")
+	// SourceAddr defines the address used on verifier
+	SourceAddr = getEnv("SOURCE_ADDR", "admin@gmail.com")
 	// HTTPClientTimeout defines the HTTP client timeout used in requests
 	HTTPClientTimeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "25"))
 	// RateLimitMax is the maximum number of requests allowed in the

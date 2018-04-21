@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sdwolfe32/trumail/httpclient"
+	"github.com/sdwolfe32/httpclient"
 )
 
 // updateInterval is how often we should reach out to update
