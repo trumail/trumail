@@ -36,24 +36,16 @@ func (s *Service) Lookup(c echo.Context) error {
 	email := c.Param("email")
 	l = l.WithField("email", email)
 
-	// Parse the address passed
-	l.Debug("Parsing the received email address")
-	address, err := verifier.ParseAddress(email)
-	if err != nil {
-		l.WithError(err).Error("Failed to parse email address")
-		return countAndRespond(c, http.StatusBadRequest, err)
-	}
-
 	// Check cache for a successful Lookup
 	l.Debug("Checking cache for previous Lookup")
-	if lookup, ok := s.lookupCache.Get(address.MD5Hash); ok {
+	if lookup, ok := s.lookupCache.Get(email); ok {
 		l.WithField("lookup", lookup).Debug("Returning Lookup found in cache")
 		return countAndRespond(c, http.StatusOK, lookup)
 	}
 
 	// Performs the full email verification
 	l.Debug("Performing new email verification")
-	lookup, err := s.verifier.VerifyAddressTimeout(address, s.timeout)
+	lookup, err := s.verifier.VerifyTimeout(email, s.timeout)
 	if err != nil {
 		l.WithError(err).Error("Failed to perform verification")
 		return countAndRespond(c, http.StatusInternalServerError, err)
@@ -62,7 +54,7 @@ func (s *Service) Lookup(c echo.Context) error {
 
 	// Store the lookup in cache
 	l.Debug("Caching new Lookup")
-	s.lookupCache.SetDefault(address.MD5Hash, lookup)
+	s.lookupCache.SetDefault(email, lookup)
 
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")

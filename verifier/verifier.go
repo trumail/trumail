@@ -27,6 +27,7 @@ func NewVerifier(hostname, sourceAddr string) *Verifier {
 type Lookup struct {
 	XMLName xml.Name `json:"-" xml:"lookup"`
 	Address
+	ValidFormat bool `json:"validFormat" xml:"validFormat"`
 	Deliverable bool `json:"deliverable" xml:"deliverable"`
 	FullInbox   bool `json:"fullInbox" xml:"fullInbox"`
 	HostExists  bool `json:"hostExists" xml:"hostExists"`
@@ -35,14 +36,14 @@ type Lookup struct {
 	Gravatar    bool `json:"gravatar" xml:"gravatar"`
 }
 
-// VerifyAddressTimeout performs an email verification, failing with an ErrTimeout
+// VerifyTimeout performs an email verification, failing with an ErrTimeout
 // if a valid Lookup isn't produced within the timeout passed
-func (v *Verifier) VerifyAddressTimeout(address *Address, timeout time.Duration) (*Lookup, error) {
+func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, error) {
 	ch := make(chan interface{}, 1)
 
 	// Create a goroutine that will attempt to connect to the SMTP server
 	go func() {
-		d, err := v.VerifyAddress(address)
+		d, err := v.Verify(email)
 		if err != nil {
 			ch <- err
 		} else {
@@ -66,35 +67,29 @@ func (v *Verifier) VerifyAddressTimeout(address *Address, timeout time.Duration)
 	}
 }
 
-// VerifyEmail parses the passed email address and verifies it's
-// deliverability, returning any errors that are encountered
-func (v *Verifier) VerifyEmail(email string) (*Lookup, error) {
-	// First parse the email string passed
-	a, err := ParseAddress(email)
+// Verify performs an email verification on the passed email address
+func (v *Verifier) Verify(email string) (*Lookup, error) {
+	// Initialize the lookup
+	l := new(Lookup)
+	l.Address.Address = email
+
+	// First parse the email address passed
+	address, err := ParseAddress(email)
 	if err != nil {
-		return nil, newLookupError(ErrEmailParseFailure, ErrEmailParseFailure)
+		l.ValidFormat = false
+		return l, nil
 	}
+	l.ValidFormat = true
+	l.Address = *address
 
-	// Perform the verification with the parsed address
-	return v.VerifyAddress(a)
-}
-
-// VerifyAddress performs an email verification on the passed
-// Address
-func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
-	// Declare the lookup to be populated and populate
-	// all inital field values
-	l := &Lookup{
-		Address:    *address,
-		HostExists: true,
-		Disposable: v.disp.IsDisposable(address.Domain),
-		Gravatar:   v.HasGravatar(address),
-	}
+	// Set all parse dependent but SMTP independent values
+	l.Disposable = v.disp.IsDisposable(address.Domain)
+	l.Gravatar = v.HasGravatar(address.MD5Hash)
 
 	// Attempt to form an SMTP Connection
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
-		le := parseRCPTErr(err)
+		le := parseSTDErr(err)
 		if le != nil {
 			if le.Message == ErrNoSuchHost {
 				l.HostExists = false
@@ -103,6 +98,7 @@ func (v *Verifier) VerifyAddress(address *Address) (*Lookup, error) {
 		}
 		return nil, parseSTDErr(err)
 	}
+	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
 
 	// Retrieve the catchall status

@@ -8,7 +8,6 @@ import (
 
 const (
 	ErrUnexpectedResponse = "Unexpected response from deliverabler"
-	ErrEmailParseFailure  = "Failed to parse email address"
 
 	// Standard Errors
 	ErrNoStatusCode      = "No status code"
