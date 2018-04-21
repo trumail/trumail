@@ -37,8 +37,8 @@ func main() {
 	e := echo.New()
 	v := verifier.NewVerifier(hostname, config.SourceAddr)
 	// Restart Dyno if officially confirmed blacklisted
-	if v.Blacklisted() {
-		l.Info("Confirmed Blacklisted! - Restarting Dyno")
+	if err := v.Blacklisted(); err != nil {
+		l.WithError(err).Info("Confirmed Blacklisted! - Restarting Dyno")
 		go log.Println(heroku.RestartDyno())
 	}
 	s := api.NewService(logger,

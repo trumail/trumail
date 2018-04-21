@@ -1,8 +1,8 @@
 package verifier
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net"
 	"strings"
 )
@@ -13,19 +13,26 @@ const ipifyBaseURL = "https://api.ipify.org"
 // Blacklisted is a parent blacklist checking method that
 // returns true if our IP is blacklisted in any of the
 // monitored blacklisting services
-func (v *Verifier) Blacklisted() bool {
-	return v.dnsBlacklisted(blacklists) ||
-		v.matchBlacklisted("support@me.com", "proofpoint") ||
-		v.matchBlacklisted("support@orange.fr", "cloudmark")
+func (v *Verifier) Blacklisted() error {
+	if err := v.dnsBlacklisted(blacklists); err != nil {
+		return err
+	}
+	if err := v.matchBlacklisted("support@me.com", "proofpoint"); err != nil {
+		return err
+	}
+	if err := v.matchBlacklisted("support@orange.fr", "cloudmark"); err != nil {
+		return err
+	}
+	return nil
 }
 
 // dnsBlacklisted takes a list of dns blacklist addresses
 // and checks each
-func (v *Verifier) dnsBlacklisted(lists []string) bool {
+func (v *Verifier) dnsBlacklisted(lists []string) error {
 	// Retrieve this servers IP address
 	ip, err := v.client.GetString(ipifyBaseURL)
 	if err != nil {
-		return false
+		return nil
 	}
 
 	// Generate the blacklist query subdomain
@@ -38,21 +45,20 @@ func (v *Verifier) dnsBlacklisted(lists []string) bool {
 
 		// Perform a host lookup and return true if found
 		if addrs, _ := net.LookupHost(url); len(addrs) > 0 {
-			log.Println("Blocked by ", host)
-			return true
+			return errors.New("Blocked by " + host)
 		}
 	}
-	return false
+	return nil
 }
 
 // matchBlacklisted returns a boolean value that defines
 // whether or not our sending IP is blacklisted on the passed
 // emails mail server using the passed selector string
-func (v *Verifier) matchBlacklisted(email, selector string) bool {
+func (v *Verifier) matchBlacklisted(email, selector string) error {
 	// Parse the address passed
 	a, err := ParseAddress(email)
 	if err != nil {
-		return false
+		return nil
 	}
 
 	// Attempts to form an SMTP Connection to the proofpoint
@@ -63,10 +69,9 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 		le := parseRCPTErr(err)
 		if le != nil && le.Message == ErrBlocked &&
 			insContains(le.Details, selector) {
-			log.Println("Blocked by ", selector)
-			return true
+			return errors.New("Blocked by " + selector)
 		}
-		return false
+		return nil
 	}
 
 	// Checks deliverability of an arbitrary proofpoint protected
@@ -76,12 +81,11 @@ func (v *Verifier) matchBlacklisted(email, selector string) bool {
 		le := parseRCPTErr(err)
 		if le != nil && le.Message == ErrBlocked &&
 			insContains(le.Details, selector) {
-			log.Println("Blocked by ", selector)
-			return true
+			return errors.New("Blocked by " + selector)
 		}
-		return false
+		return nil
 	}
-	return false
+	return nil
 }
 
 // reverse reverses the order of the passed in string slice,
