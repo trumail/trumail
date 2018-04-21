@@ -1,8 +1,10 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-20T21:40:43.830017-07:00
+updated: 2018-04-20T22:12:38.614746-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
+- name: github.com/dgrijalva/jwt-go
+  version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
 - name: github.com/getsentry/raven-go
   version: d1470f50d3a3a38533355a9fab7393e25a3b4226
 - name: github.com/heroku/x
@@ -12,11 +14,15 @@ imports:
   - hmetrics/onload
 - name: github.com/labstack/echo
   version: f867058e3ba4fa4504e3ca976b31012db3ce1555
+  subpackages:
+  - middleware
 - name: github.com/labstack/gommon
   version: 3bc2d333a4c30531c47051369043bcabd62ff4c0
   subpackages:
+  - bytes
   - color
   - log
+  - random
 - name: github.com/mattn/go-colorable
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty

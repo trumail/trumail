@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
 	"github.com/sdwolfe32/trumail/heroku"
@@ -35,6 +36,10 @@ func main() {
 	l.Info("Defining all service dependencies")
 	hostname := retrievePTR()
 	e := echo.New()
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://trumail.io"},
+		AllowMethods: []string{http.MethodGet},
+	}))
 	v := verifier.NewVerifier(hostname, config.SourceAddr)
 	// Restart Dyno if officially confirmed blacklisted
 	if err := v.Blacklisted(); err != nil {
@@ -64,7 +69,7 @@ func main() {
 
 // Debug is an endpoint for debugging runaway goroutines
 func Debug(c echo.Context) error {
-	if c.Request().Header.Get("X-Debug-Token") != config.Token {
+	if c.Request().Header.Get("X-Auth-Token") != config.Token {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	var buf bytes.Buffer
