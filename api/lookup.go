@@ -7,6 +7,7 @@ import (
 	raven "github.com/getsentry/raven-go"
 	"github.com/labstack/echo"
 	tinystat "github.com/sdwolfe32/tinystat/client"
+	"github.com/sdwolfe32/trumail/heroku"
 	"github.com/sdwolfe32/trumail/verifier"
 )
 
@@ -50,6 +51,13 @@ func (s *Service) Lookup(c echo.Context) error {
 	l.Debug("Performing new email verification")
 	lookup, err := s.verifier.VerifyTimeout(email, s.timeout)
 	if err != nil {
+		if strings.Contains(err.Error(), verifier.ErrBlocked) {
+			// Restart Dyno if officially confirmed blacklisted
+			if err := s.verifier.Blacklisted(); err != nil {
+				l.WithError(err).Warn("Confirmed Blacklisted! - Restarting Dyno")
+				go l.Info(heroku.RestartDyno())
+			}
+		}
 		l.WithError(err).Error("Failed to perform verification")
 		return countAndRespond(c, http.StatusInternalServerError, err)
 	}

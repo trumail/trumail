@@ -5,32 +5,27 @@ import (
 	"fmt"
 	"net"
 	"strings"
-)
 
-// ipifyBaseURL is used to retrieve our servers IP
-const ipifyBaseURL = "https://api.ipify.org"
+	"golang.org/x/sync/errgroup"
+)
 
 // Blacklisted is a parent blacklist checking method that
 // returns true if our IP is blacklisted in any of the
 // monitored blacklisting services
 func (v *Verifier) Blacklisted() error {
-	if err := v.dnsBlacklisted(blacklists); err != nil {
-		return err
-	}
-	if err := v.matchBlacklisted("support@me.com", "proofpoint"); err != nil {
-		return err
-	}
-	if err := v.matchBlacklisted("support@orange.fr", "cloudmark"); err != nil {
-		return err
-	}
-	return nil
+	var g errgroup.Group
+	g.Go(func() error { return v.dnsBlacklisted(blacklists) })
+	g.Go(func() error { return v.matchBlacklisted("support@me.com", "proofpoint") })
+	g.Go(func() error { return v.matchBlacklisted("support@orange.fr", "cloudmark") })
+	g.Go(func() error { return v.matchBlacklisted("support@subaru.com.au", "trend micro rbl") })
+	return g.Wait()
 }
 
 // dnsBlacklisted takes a list of dns blacklist addresses
 // and checks each
 func (v *Verifier) dnsBlacklisted(lists []string) error {
 	// Retrieve this servers IP address
-	ip, err := v.client.GetString(ipifyBaseURL)
+	ip, err := v.client.GetString("https://api.ipify.org")
 	if err != nil {
 		return nil
 	}
@@ -39,6 +34,7 @@ func (v *Verifier) dnsBlacklisted(lists []string) error {
 	revIPArr := reverse(strings.Split(ip, "."))
 	revIP := strings.Join(revIPArr, ".")
 
+	// Perform a DNS lookup on all the lists
 	for _, host := range lists {
 		// Generate the blacklist url
 		url := fmt.Sprintf("%s.%s", revIP, host)
@@ -52,31 +48,12 @@ func (v *Verifier) dnsBlacklisted(lists []string) error {
 }
 
 // matchBlacklisted returns a boolean value that defines
-// whether or not our sending IP is blacklisted on the passed
-// emails mail server using the passed selector string
+// whether or not our sending IP is blacklisted on the
+// passed emails mail server using the passed selector
+// string
 func (v *Verifier) matchBlacklisted(email, selector string) error {
-	// Parse the address passed
-	a, err := ParseAddress(email)
-	if err != nil {
-		return nil
-	}
-
-	// Attempts to form an SMTP Connection to the proofpoint
-	// protected mailserver
-	deliverabler, err := NewDeliverabler(a.Domain, v.hostname, v.sourceAddr)
-	if err != nil {
-		// If the error confirms we are blocked with the selector
-		le := parseRCPTErr(err)
-		if le != nil && le.Message == ErrBlocked &&
-			insContains(le.Details, selector) {
-			return errors.New("Blocked by " + selector)
-		}
-		return nil
-	}
-
-	// Checks deliverability of an arbitrary proofpoint protected
-	// address
-	if err := deliverabler.IsDeliverable(a.Address, 5); err != nil {
+	// Perform a lookup on the email
+	if _, err := v.Verify(email); err != nil {
 		// If the error confirms we are blocked with the selector
 		le := parseRCPTErr(err)
 		if le != nil && le.Message == ErrBlocked &&
@@ -88,8 +65,8 @@ func (v *Verifier) matchBlacklisted(email, selector string) error {
 	return nil
 }
 
-// reverse reverses the order of the passed in string slice,
-// returning a new one of the opposite order
+// reverse reverses the order of the passed in string
+// slice, returning a new one of the opposite order
 func reverse(in []string) []string {
 	if len(in) == 0 {
 		return in
@@ -97,7 +74,8 @@ func reverse(in []string) []string {
 	return append(reverse(in[1:]), in[0])
 }
 
-// blacklists contains all the blacklist hostnames we want to check
+// blacklists contains all the blacklist hostnames we
+// want to check
 var blacklists = []string{
 	"zen.spamhaus.org",
 	"xbl.spamhaus.org",
@@ -108,6 +86,13 @@ var blacklists = []string{
 	"noptr.spamrats.com",
 	"spam.spamrats.com",
 	"dyna.spamrats.com",
+	// "bl.drmx.org",
+	// "bl.konstant.no",
+	// "bl.nszones.com",
+	// "bl.spamcannibal.org",
+	// "bl.spameatingmonkey.net",
+	// "black.junkemailfilter.com",
+	// "rbl.abuse.ro",
 	// "bl.spamstinks.com",
 	// "0spam-killlist.fusionzero.com",
 	// "0spam.fusionzero.com",
@@ -180,7 +165,6 @@ var blacklists = []string{
 	// "phishing.rbl.msrbl.net",
 	// "pofon.foobar.hu",
 	// "psbl.surriel.com",
-	// "rbl.abuse.ro",
 	// "rbl.blockedservers.com",
 	// "rbl.dns-servicios.com",
 	// "rbl.efnet.org",

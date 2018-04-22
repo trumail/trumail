@@ -1,9 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
-	"log"
-	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -13,8 +10,6 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
-	"github.com/sdwolfe32/trumail/heroku"
-	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,21 +27,12 @@ func main() {
 
 	// Define all required dependencies
 	l.Info("Defining all service dependencies")
-	hostname := retrievePTR()
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"https://trumail.io"},
 		AllowMethods: []string{http.MethodGet},
 	}))
-	v := verifier.NewVerifier(hostname, config.SourceAddr)
-
-	// Restart Dyno if officially confirmed blacklisted
-	l.Info("Checking blacklist status")
-	if err := v.Blacklisted(); err != nil {
-		l.WithError(err).Info("Confirmed Blacklisted! - Restarting Dyno")
-		go log.Println(heroku.RestartDyno())
-	}
-	s := api.NewService(logger, config.HTTPClientTimeout, v)
+	s := api.NewService(logger, config.SourceAddr, config.HTTPClientTimeout)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
@@ -64,28 +50,4 @@ func main() {
 	// Listen and Serve
 	l.WithField("port", config.Port).Info("Listening and Serving")
 	l.Fatal(e.Start(":" + config.Port))
-}
-
-// retrievePTR attempts to retrieve the PTR record for the IP
-// address retrieved via an API call on api.ipify.org
-func retrievePTR() string {
-	// Request the IP from ipify
-	resp, err := http.Get("https://api.ipify.org/")
-	if err != nil {
-		log.Fatal("Failed to retrieve IP from api.ipify.org")
-	}
-	defer resp.Body.Close()
-
-	// Decodes the IP response body
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal("Failed to read IP response body")
-	}
-
-	// Retrieve the PTR record for our IP and return without a trailing dot
-	names, err := net.LookupAddr(string(data))
-	if err != nil {
-		return string(data)
-	}
-	return strings.TrimSuffix(names[0], ".")
 }
