@@ -15,9 +15,10 @@ import (
 func (v *Verifier) Blacklisted() error {
 	var g errgroup.Group
 	g.Go(func() error { return v.dnsBlacklisted(blacklists) })
-	g.Go(func() error { return v.matchBlacklisted("support@me.com", "proofpoint") })
-	g.Go(func() error { return v.matchBlacklisted("support@orange.fr", "cloudmark") })
-	g.Go(func() error { return v.matchBlacklisted("support@subaru.com.au", "trend micro rbl") })
+	g.Go(func() error { return v.matchBlacklisted("support@me.com", "proofpoint") }) // Proofpoint
+	// g.Go(func() error { return v.matchBlacklisted("support@bath.ac.uk", "outlook.com") })        // Outlook
+	g.Go(func() error { return v.matchBlacklisted("support@orange.fr", "cloudmark") })           // Cloudmark
+	g.Go(func() error { return v.matchBlacklisted("support@subaru.com.au", "trend micro rbl") }) // Trend Micro RBL+
 	return g.Wait()
 }
 
@@ -55,7 +56,7 @@ func (v *Verifier) matchBlacklisted(email, selector string) error {
 	// Perform a lookup on the email
 	if _, err := v.Verify(email); err != nil {
 		// If the error confirms we are blocked with the selector
-		le := parseRCPTErr(err)
+		le := parseSMTPError(err)
 		if le != nil && le.Message == ErrBlocked &&
 			insContains(le.Details, selector) {
 			return errors.New("Blocked by " + selector)

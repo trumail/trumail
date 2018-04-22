@@ -179,8 +179,11 @@ func shouldRetry(err error) bool {
 	return insContains(err.Error(),
 		"i/o timeout",
 		"broken pipe",
+		"exceeded the maximum number of connections",
 		"use of closed network connection",
 		"connection reset by peer",
+		"connection declined",
+		"connection refused",
 		"multiple regions",
 		"server busy",
 		"eof")
