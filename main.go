@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -41,13 +39,14 @@ func main() {
 		AllowMethods: []string{http.MethodGet},
 	}))
 	v := verifier.NewVerifier(hostname, config.SourceAddr)
+
 	// Restart Dyno if officially confirmed blacklisted
+	l.Info("Checking blacklist status")
 	if err := v.Blacklisted(); err != nil {
 		l.WithError(err).Info("Confirmed Blacklisted! - Restarting Dyno")
 		go log.Println(heroku.RestartDyno())
 	}
-	s := api.NewService(logger,
-		time.Duration(config.HTTPClientTimeout)*time.Second, v)
+	s := api.NewService(logger, config.HTTPClientTimeout, v)
 
 	// Bind endpoints to router
 	l.Info("Binding API endpoints to the router")
@@ -60,21 +59,11 @@ func main() {
 		e.GET("/v1/:format/:email", s.Lookup)
 	}
 	e.GET("/v1/health", s.Health)
-	e.GET("/v1/debug", Debug)
+	e.GET("/v1/debug", api.Debug)
 
 	// Listen and Serve
 	l.WithField("port", config.Port).Info("Listening and Serving")
 	l.Fatal(e.Start(":" + config.Port))
-}
-
-// Debug is an endpoint for debugging runaway goroutines
-func Debug(c echo.Context) error {
-	if c.Request().Header.Get("X-Auth-Token") != config.Token {
-		return c.JSON(http.StatusUnauthorized, nil)
-	}
-	var buf bytes.Buffer
-	pprof.Lookup("goroutine").WriteTo(&buf, 1)
-	return c.String(http.StatusOK, buf.String())
 }
 
 // retrievePTR attempts to retrieve the PTR record for the IP

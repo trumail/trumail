@@ -11,9 +11,12 @@ import (
 )
 
 const (
-	FormatJSON  = "JSON"
-	FormatJSONP = "JSONP"
-	FormatXML   = "XML"
+	// FormatJSON is the format constant for a JSON output
+	FormatJSON = "json"
+	// FormatJSONP is the format constant for a JSONP output
+	FormatJSONP = "jsonp"
+	// FormatXML is the format constant for a XML output
+	FormatXML = "xml"
 )
 
 var (
@@ -88,7 +91,9 @@ func count(res interface{}) {
 // format to the ResponseWriter using the passed echo.Context
 func respond(c echo.Context, code int, res interface{}) error {
 	// Encode the in requested format
-	switch strings.ToUpper(c.Param("format")) {
+	switch strings.ToLower(c.Param("format")) {
+	case FormatXML:
+		return c.XML(code, res)
 	case FormatJSON:
 		return c.JSON(code, res)
 	case FormatJSONP:
@@ -97,8 +102,6 @@ func respond(c echo.Context, code int, res interface{}) error {
 			return ErrInvalidCallback
 		}
 		return c.JSONP(code, callback, res)
-	case FormatXML:
-		return c.XML(code, res)
 	default:
 		return ErrUnsupportedFormat
 	}

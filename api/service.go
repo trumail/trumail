@@ -17,12 +17,12 @@ type Service struct {
 }
 
 // NewService generates a new, fully populated Trumail reference
-func NewService(log *logrus.Logger, timeout time.Duration,
+func NewService(log *logrus.Logger, timeout int,
 	verifier *verifier.Verifier) *Service {
 	return &Service{
 		log:         log.WithField("service", "api"),
-		timeout:     timeout,
-		lookupCache: cache.New(12*time.Hour, time.Hour),
+		timeout:     time.Duration(timeout) * time.Second,
+		lookupCache: cache.New(6*time.Hour, time.Hour),
 		verifier:    verifier,
 	}
 }

@@ -29,17 +29,6 @@ func NewClient(token string) *Client {
 	}
 }
 
-// RestartApp takes a Heroku app ID and an auth token in order to
-// restart a Heroku App
-func (c *Client) RestartApp(appID string) error {
-	if appID == "" {
-		return errors.New("Credentials missing to restart heroku dyno")
-	}
-
-	// Execute the request on the built path
-	return c.client.Delete(fmt.Sprintf("%s/apps/%s/dynos", baseURL, appID))
-}
-
 // RestartDyno takes a Heroku app ID and an auth token in order to
 // restart a Heroku Dyno
 func (c *Client) RestartDyno(appID, dyno string) error {

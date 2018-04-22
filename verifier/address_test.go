@@ -1,8 +1,6 @@
 package verifier
 
-import (
-	"gopkg.in/check.v1"
-)
+import check "gopkg.in/check.v1"
 
 type addressSuite struct{}
 

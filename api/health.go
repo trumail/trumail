@@ -18,6 +18,6 @@ func (s *Service) Health(c echo.Context) error {
 	l.Debug("New Health check request received")
 
 	// Return a new Health check reference
-	l.Debug("Returning Health check Response")
+	l.Debug("Returning Health check response")
 	return c.JSON(http.StatusOK, &Health{"OK"})
 }
