@@ -1,5 +1,5 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-22T00:43:19.697742-07:00
+updated: 2018-04-22T02:24:04.145817-07:00
 imports:
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
@@ -27,8 +27,6 @@ imports:
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
-- name: github.com/patrickmn/go-cache
-  version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
 - name: github.com/pkg/errors
   version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/httpclient

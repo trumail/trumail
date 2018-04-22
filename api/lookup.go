@@ -40,13 +40,6 @@ func (s *Service) Lookup(c echo.Context) error {
 	email := c.Param("email")
 	l = l.WithField("email", email)
 
-	// Check cache for a successful Lookup
-	l.Debug("Checking cache for previous Lookup")
-	if lookup, ok := s.lookupCache.Get(email); ok {
-		l.WithField("lookup", lookup).Debug("Returning Lookup found in cache")
-		return countAndRespond(c, http.StatusOK, lookup)
-	}
-
 	// Performs the full email verification
 	l.Debug("Performing new email verification")
 	lookup, err := s.verifier.VerifyTimeout(email, s.timeout)
@@ -62,12 +55,6 @@ func (s *Service) Lookup(c echo.Context) error {
 		return countAndRespond(c, http.StatusInternalServerError, err)
 	}
 	l = l.WithField("lookup", lookup)
-
-	// Store the lookup in cache if it's of a valid format
-	if lookup.ValidFormat {
-		l.Debug("Caching new Lookup")
-		s.lookupCache.SetDefault(email, lookup)
-	}
 
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")

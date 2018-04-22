@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	cache "github.com/patrickmn/go-cache"
 	"github.com/sdwolfe32/trumail/heroku"
 	"github.com/sdwolfe32/trumail/verifier"
 	"github.com/sirupsen/logrus"
@@ -16,10 +15,9 @@ import (
 
 // Service contains all dependencies for the Trumail API
 type Service struct {
-	log         *logrus.Entry
-	timeout     time.Duration
-	lookupCache *cache.Cache
-	verifier    *verifier.Verifier
+	log      *logrus.Entry
+	timeout  time.Duration
+	verifier *verifier.Verifier
 }
 
 // NewService generates a new, fully populated Trumail reference
@@ -35,10 +33,9 @@ func NewService(l *logrus.Logger, sourceAddr string, timeout int) *Service {
 
 	// Return the fully populated API Service
 	return &Service{
-		log:         l.WithField("service", "api"),
-		timeout:     time.Duration(timeout) * time.Second,
-		lookupCache: cache.New(6*time.Hour, time.Hour),
-		verifier:    v,
+		log:      l.WithField("service", "api"),
+		timeout:  time.Duration(timeout) * time.Second,
+		verifier: v,
 	}
 }
 
