@@ -28,6 +28,7 @@ func main() {
 	// Define all required dependencies
 	l.Info("Defining all service dependencies")
 	e := echo.New()
+	e.HTTPErrorHandler = api.ErrorHandler
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"https://trumail.io"},
 		AllowMethods: []string{http.MethodGet},
