@@ -63,9 +63,11 @@ func (s *Service) Lookup(c echo.Context) error {
 	}
 	l = l.WithField("lookup", lookup)
 
-	// Store the lookup in cache
-	l.Debug("Caching new Lookup")
-	s.lookupCache.SetDefault(email, lookup)
+	// Store the lookup in cache if it's of a valid format
+	if lookup.ValidFormat {
+		l.Debug("Caching new Lookup")
+		s.lookupCache.SetDefault(email, lookup)
+	}
 
 	// Returns the email validation lookup to the requestor
 	l.Debug("Returning Email Lookup")
