@@ -14,10 +14,10 @@ type Health struct {
 // Health returns a Health check response indicating the
 // health state of the service
 func (s *Service) Health(c echo.Context) error {
-	l := s.log.WithField("handler", "health")
+	l := s.Logger.WithField("handler", "health")
 	l.Debug("New Health check request received")
 
-	// Return a new Health check reference
+	// Return a new Health check response
 	l.Debug("Returning Health check response")
 	return c.JSON(http.StatusOK, &Health{"OK"})
 }

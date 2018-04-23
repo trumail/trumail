@@ -34,6 +34,14 @@ func main() {
 }
 ```
 
+## Running with Go
+
+```
+go get -d github.com/sdwolfe32/trumail/...
+go install github.com/sdwolfe32/trumail
+trumail
+```
+
 ## Running with Docker
 
 ```

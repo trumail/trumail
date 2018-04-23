@@ -1,41 +1,19 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-22T02:24:04.145817-07:00
+updated: 2018-04-22T22:55:18.831905-07:00
 imports:
-- name: github.com/certifi/gocertifi
-  version: deb3ae2ef2610fde3330947281941c562861188b
-- name: github.com/dgrijalva/jwt-go
-  version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
-- name: github.com/getsentry/raven-go
-  version: d1470f50d3a3a38533355a9fab7393e25a3b4226
-- name: github.com/heroku/x
-  version: e027b57be83570b92aeefcdad710e38695d5999b
-  subpackages:
-  - hmetrics
-  - hmetrics/onload
 - name: github.com/labstack/echo
   version: f867058e3ba4fa4504e3ca976b31012db3ce1555
-  subpackages:
-  - middleware
 - name: github.com/labstack/gommon
   version: 3bc2d333a4c30531c47051369043bcabd62ff4c0
   subpackages:
-  - bytes
   - color
   - log
-  - random
 - name: github.com/mattn/go-colorable
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
-- name: github.com/pkg/errors
-  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/sdwolfe32/httpclient
-  version: 8e49d90277dbc55a3451bc7e56e2244e4eb11bd6
-- name: github.com/sdwolfe32/tinystat
-  version: 376246d4faa5a51dd868d710bc8b920d30f6edf8
-  subpackages:
-  - client
-  - models
+  version: c0d9028e14d66fd2fbf628c95312d618fdab0628
 - name: github.com/sirupsen/logrus
   version: 778f2e774c725116edbc3d039dc0dfc1cc62aae8
 - name: github.com/valyala/bytebufferpool
@@ -51,12 +29,7 @@ imports:
 - name: golang.org/x/net
   version: 5f9ae10d9af5b1c89ae6904293b14b064d4ada23
   subpackages:
-  - context
   - idna
-- name: golang.org/x/sync
-  version: 1d60e4601c6fd243af51cc01ddf169918a5407ca
-  subpackages:
-  - errgroup
 - name: golang.org/x/sys
   version: 79b0c6888797020a994db17c8510466c72fe75d9
   subpackages:
