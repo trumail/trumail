@@ -6,7 +6,7 @@
 
 Trumail is a free and open source email validation/verification system. It is available in three forms, the Golang client library `verifier` for use in your own Go projects, a public API endpoint (more info: https://trumail.io), and a public Docker image on DockerHub (see: https://hub.docker.com/r/sdwolfe32/trumail/). 
 
-NOTE: It is highly recommended (due to potential Heroku IP blacklisting resulting in failed validations) that you host the service yourself either using a Docker image or by forking and serving this project on your own instance. However, self-hosting Trumail requires bidirectional communication on port 25 which most residential ISPs restrict. AWS and Digitalocean both allow this.
+NOTE: While we do offer a managed, enterprise level service to paying customers, it is highly recommended that you host the service yourself either using a Docker image or by forking and serving this project on your own instance. Please keep in mind, self-hosting Trumail requires bidirectional communication on port 25 which most residential ISPs restrict - AWS and Digitalocean both permit this sort of communication.
 
 ## Using the API (public or self-hosted)
 
