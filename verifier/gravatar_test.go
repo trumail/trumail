@@ -23,7 +23,7 @@ func configureRequestMock(addressMD5 string, statusCode int) *gock.Response {
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
-	v := Verifier{client: httpclient.New(time.Second*5, nil)}
+	v := Verifier{client: httpclient.NewBaseClient(time.Second * 5)}
 	configureRequestMock("asdf1234", http.StatusOK)
 	defer gock.Off()
 
@@ -31,7 +31,7 @@ func (s *gravatarSuite) TestHasGravatarStatusOk(c *check.C) {
 }
 
 func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
-	v := Verifier{client: httpclient.New(time.Second*5, nil)}
+	v := Verifier{client: httpclient.NewBaseClient(time.Second * 5)}
 	gockResponse := configureRequestMock("asdf1234", 200)
 	gockResponse.SetError(errors.New("Some error while requesting"))
 	defer gock.Off()
@@ -40,7 +40,7 @@ func (s *gravatarSuite) TestHasGravatarRequestError(c *check.C) {
 }
 
 func (s *gravatarSuite) TestHasGravatarStatusNotOk(c *check.C) {
-	v := Verifier{client: httpclient.New(time.Second*5, nil)}
+	v := Verifier{client: httpclient.NewBaseClient(time.Second * 5)}
 	configureRequestMock("asdf1234", http.StatusBadRequest)
 	defer gock.Off()
 
