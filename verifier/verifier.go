@@ -3,24 +3,17 @@ package verifier
 import (
 	"encoding/xml"
 	"time"
-
-	"github.com/sdwolfe32/httpclient"
 )
 
 // Verifier contains all dependencies needed to perform educated email
 // verification lookups
-type Verifier struct {
-	client               *httpclient.Client
-	hostname, sourceAddr string
-	disp                 *Disposabler
-}
+type Verifier struct{ hostname, sourceAddr string }
 
 // NewVerifier generates a new httpclient.Client using the passed timeout
 // and then returns a new Verifier reference that will be used to Verify
 // email addresses
 func NewVerifier(hostname, sourceAddr string) *Verifier {
-	client := httpclient.NewBaseClient(time.Second * 30)
-	return &Verifier{client, hostname, sourceAddr, NewDisposabler(client)}
+	return &Verifier{hostname, sourceAddr}
 }
 
 // Lookup contains all output data for an email verification Lookup
@@ -32,8 +25,6 @@ type Lookup struct {
 	FullInbox   bool `json:"fullInbox" xml:"fullInbox"`
 	HostExists  bool `json:"hostExists" xml:"hostExists"`
 	CatchAll    bool `json:"catchAll" xml:"catchAll"`
-	Disposable  bool `json:"disposable" xml:"disposable"`
-	Gravatar    bool `json:"gravatar" xml:"gravatar"`
 }
 
 // VerifyTimeout performs an email verification, failing with an ErrTimeout
@@ -81,10 +72,6 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	}
 	l.ValidFormat = true
 	l.Address = *address
-
-	// Set all parse dependent but SMTP independent values
-	l.Disposable = v.disp.IsDisposable(address.Domain)
-	l.Gravatar = v.HasGravatar(address.MD5Hash)
 
 	// Attempt to form an SMTP Connection
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)

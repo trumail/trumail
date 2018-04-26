@@ -10,29 +10,20 @@ import (
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/config"
 	"github.com/sdwolfe32/trumail/verifier"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	// Generate a new logrus logger
-	logger := logrus.New()
-	logger.Level = logrus.DebugLevel
-	l := logger.WithField("port", config.Port)
-
 	// Define all required dependencies
-	l.Info("Defining all service dependencies")
 	e := echo.New()
-	v := verifier.NewVerifier(retrievePTR(), config.SourceAddr)
-	s := api.NewService(logger, config.HTTPClientTimeout, v)
+	s := api.NewService(config.HTTPClientTimeout,
+		verifier.NewVerifier(retrievePTR(), config.SourceAddr))
 
 	// Bind endpoints to router
-	l.Info("Binding API endpoints to the router")
 	e.GET("/v1/:format/:email", s.Lookup)
-	e.GET("/v1/health", s.Health)
+	e.GET("/v1/health", api.Healthcheck)
 
 	// Listen and Serve
-	l.WithField("port", config.Port).Info("Listening and Serving")
-	l.Fatal(e.Start(":" + config.Port))
+	log.Fatal(e.Start(":" + config.Port))
 }
 
 // retrievePTR attempts to retrieve the PTR record for the IP

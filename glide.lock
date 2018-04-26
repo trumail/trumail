@@ -1,10 +1,10 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-24T23:13:03.283031-07:00
+updated: 2018-04-25T21:17:12.55294-07:00
 imports:
 - name: github.com/labstack/echo
   version: f867058e3ba4fa4504e3ca976b31012db3ce1555
 - name: github.com/labstack/gommon
-  version: 3bc2d333a4c30531c47051369043bcabd62ff4c0
+  version: 588f4e8bddc6cb45c27b448e925c7fd6a5545434
   subpackages:
   - color
   - log
@@ -16,27 +16,23 @@ imports:
   version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
 - name: github.com/sdwolfe32/httpclient
   version: 8de35f89dfa06db922fa51d17bde1c4e3dfb18fc
-- name: github.com/sirupsen/logrus
-  version: 778f2e774c725116edbc3d039dc0dfc1cc62aae8
 - name: github.com/valyala/bytebufferpool
   version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: 2b6c08872f4b66da917bb4ce98df4f0307330f78
+  version: b0697eccbea9adec5b7ba8008f4c33d98d733388
   subpackages:
   - acme
   - acme/autocert
-  - ssh/terminal
 - name: golang.org/x/net
   version: 5f9ae10d9af5b1c89ae6904293b14b064d4ada23
   subpackages:
   - idna
 - name: golang.org/x/sys
-  version: 79b0c6888797020a994db17c8510466c72fe75d9
+  version: bb9c189858d91f42db229b04d45a4c3d23a7662a
   subpackages:
   - unix
-  - windows
 - name: golang.org/x/text
   version: 7922cc490dd5a7dbaa7fd5d6196b49db59ac042f
   subpackages:
@@ -59,5 +55,3 @@ testImports:
   - assert
 - name: gopkg.in/check.v1
   version: 20d25e2804050c1cd24a7eea1e7a6447dd0e74ec
-- name: gopkg.in/h2non/gock.v1
-  version: 550b7ca3aa563b9974e2391274ea55a940d05ca9
