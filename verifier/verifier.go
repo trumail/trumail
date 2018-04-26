@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"encoding/xml"
+	"math/rand"
 	"time"
 )
 
@@ -9,10 +10,11 @@ import (
 // verification lookups
 type Verifier struct{ hostname, sourceAddr string }
 
-// NewVerifier generates a new httpclient.Client using the passed timeout
-// and then returns a new Verifier reference that will be used to Verify
-// email addresses
+// NewVerifier generates a new Verifier using the passed hostname and
+// source email address
 func NewVerifier(hostname, sourceAddr string) *Verifier {
+	// Seed the random number generator and return a new Verifier
+	rand.Seed(time.Now().UTC().UnixNano())
 	return &Verifier{hostname, sourceAddr}
 }
 
@@ -61,14 +63,14 @@ func (v *Verifier) VerifyTimeout(email string, timeout time.Duration) (*Lookup, 
 // Verify performs an email verification on the passed email address
 func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// Initialize the lookup
-	l := new(Lookup)
+	var l Lookup
 	l.Address.Address = email
 
 	// First parse the email address passed
 	address, err := ParseAddress(email)
 	if err != nil {
 		l.ValidFormat = false
-		return l, nil
+		return &l, nil
 	}
 	l.ValidFormat = true
 	l.Address = *address
@@ -79,27 +81,24 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 		le := parseSMTPError(err)
 		if le != nil && le.Message == ErrNoSuchHost {
 			l.HostExists = false
-			return l, nil
+			return &l, nil
 		}
 		return nil, err
 	}
 	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
 
-	// Retrieve the catchall status
+	// Retrieve the catchall status or check deliverability
 	if del.HasCatchAll(3) {
 		l.CatchAll = true
 		l.Deliverable = true
-	}
-
-	// Perform the main address verification if not a catchall server
-	if !l.CatchAll {
+	} else {
 		if err := del.IsDeliverable(address.Address, 3); err != nil {
 			le := parseSMTPError(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
 					l.FullInbox = true // Set FullInbox and move on
-					return l, nil
+					return &l, nil
 				}
 				return nil, le // Return if it's a legit error
 			}
@@ -107,5 +106,5 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 			l.Deliverable = true
 		}
 	}
-	return l, nil
+	return &l, nil
 }

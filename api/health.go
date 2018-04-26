@@ -8,11 +8,14 @@ import (
 
 // Health is a healthcheck response body
 type Health struct {
-	Status string `json:"status"`
+	Status   string `json:"status" xml:"status"`
+	Hostname string `json:"hostname" xml:"hostname"`
 }
 
-// Healthcheck returns a Health response indicating the
-// health state of the service
-func Healthcheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, &Health{"OK"})
+// HealthHandler returns a HealthResponse indicating the
+// current health state of the service
+func HealthHandler(hostname string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.JSON(http.StatusOK, &Health{"OK", hostname})
+	}
 }

@@ -1,13 +1,19 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-04-25T21:17:12.55294-07:00
+updated: 2018-04-26T19:37:31.791174-07:00
 imports:
+- name: github.com/dgrijalva/jwt-go
+  version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
 - name: github.com/labstack/echo
   version: f867058e3ba4fa4504e3ca976b31012db3ce1555
+  subpackages:
+  - middleware
 - name: github.com/labstack/gommon
   version: 588f4e8bddc6cb45c27b448e925c7fd6a5545434
   subpackages:
+  - bytes
   - color
   - log
+  - random
 - name: github.com/mattn/go-colorable
   version: efa589957cd060542a26d2dd7832fd6a6c6c3ade
 - name: github.com/mattn/go-isatty
@@ -21,7 +27,7 @@ imports:
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: b0697eccbea9adec5b7ba8008f4c33d98d733388
+  version: b49d69b5da943f7ef3c9cf91c8777c1f78a0cc3c
   subpackages:
   - acme
   - acme/autocert

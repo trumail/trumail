@@ -11,11 +11,8 @@ import (
 	"golang.org/x/net/idna"
 )
 
-// init seeds the random number generator on
-func init() { rand.Seed(time.Now().UTC().UnixNano()) }
-
-// Deliverabler contains the context and smtp.Client needed to check email
-// address deliverability
+// Deliverabler contains the context and smtp.Client needed to check
+// email address deliverability
 type Deliverabler struct {
 	client                       *smtp.Client
 	domain, hostname, sourceAddr string
