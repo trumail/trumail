@@ -83,7 +83,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 			l.HostExists = false
 			return &l, nil
 		}
-		return nil, err
+		return nil, le
 	}
 	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
