@@ -62,6 +62,7 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 
 	// Create a channel for receiving responses from
 	ch := make(chan interface{}, 1)
+	// Done indicates if we're still waiting on dial responses
 	var done bool
 
 	// Attempt to connect to all SMTP servers concurrently
@@ -70,7 +71,9 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 		go func() {
 			c, err := smtpDialTimeout(addr, time.Minute)
 			if err != nil {
-				ch <- err
+				if !done {
+					ch <- err
+				}
 				return
 			}
 
