@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/mail"
+	"net/url"
 	"strings"
 )
 
@@ -20,7 +21,7 @@ type Address struct {
 // of an Address struct pointer - domain case insensitive
 func ParseAddress(email string) (*Address, error) {
 	// Parses the address with the internal go mail address parser
-	a, err := mail.ParseAddress(email)
+	a, err := mail.ParseAddress(unescape(email))
 	if err != nil {
 		return nil, err
 	}
@@ -39,4 +40,14 @@ func ParseAddress(email string) (*Address, error) {
 
 	// Returns the Address with the username and domain split out
 	return &Address{address, username, domain, md5Hash}, nil
+}
+
+// unescape attempts to return a query un-escaped version of the
+// passed string, returning the original string of an error occurs
+func unescape(str string) string {
+	esc, err := url.QueryUnescape(str)
+	if err != nil {
+		return str
+	}
+	return esc
 }
