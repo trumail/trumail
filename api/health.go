@@ -8,8 +8,8 @@ import (
 
 // Health is a healthcheck response body
 type Health struct {
-	Status   string `json:"status" xml:"status"`
-	Hostname string `json:"hostname" xml:"hostname"`
+	Status   string `json:"status"`
+	Hostname string `json:"hostname"`
 }
 
 // HealthHandler returns a HealthResponse indicating the
