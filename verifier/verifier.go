@@ -79,11 +79,14 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
 		le := parseSMTPError(err)
-		if le != nil && le.Message == ErrNoSuchHost {
-			l.HostExists = false
-			return &l, nil
+		if le != nil {
+			if le.Message == ErrNoSuchHost {
+				l.HostExists = false
+				return &l, nil
+			}
+			return nil, le
 		}
-		return nil, le
+		return nil, parseBasicErr(err)
 	}
 	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
@@ -97,7 +100,7 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 			le := parseSMTPError(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
-					l.FullInbox = true // Set FullInbox and move on
+					l.FullInbox = true // and FullInbox and move on
 					return &l, nil
 				}
 				return nil, le // Return if it's a legit error
