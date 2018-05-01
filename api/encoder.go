@@ -31,6 +31,9 @@ var (
 // passed echo context and writes the status code and response
 // based on that format on the URL
 func FormatEncoder(c echo.Context, code int, res interface{}) error {
+	// Add X-Powered-By header
+	c.Response().Header().Add("X-Powered-By", "Trumail")
+
 	// Encode the in requested format
 	switch strings.ToLower(c.Param("format")) {
 	case FormatXML:
