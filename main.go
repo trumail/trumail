@@ -4,9 +4,7 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -20,8 +18,6 @@ var (
 	port = getEnv("PORT", "8080")
 	// sourceAddr defines the address used on verifier
 	sourceAddr = getEnv("SOURCE_ADDR", "admin@gmail.com")
-	// timeout defines the HTTP client timeout used in requests
-	timeout, _ = strconv.Atoi(getEnv("HTTP_CLIENT_TIMEOUT", "60"))
 )
 
 func main() {
@@ -34,12 +30,29 @@ func main() {
 	v := verifier.NewVerifier(retrievePTR(), sourceAddr)
 
 	// Bind the API endpoints to router
-	e.GET("/v1/:format/:email", api.LookupHandler(v,
-		time.Duration(timeout)*time.Second))
-	e.GET("/v1/health", api.HealthHandler(retrievePTR()))
+	e.GET("/v1/:format/:email", api.LookupHandler(v), authMiddleware)
+	e.GET("/v1/health", api.HealthHandler(retrievePTR()), authMiddleware)
 
 	// Listen and Serve
 	e.Logger.Fatal(e.Start(":" + port))
+}
+
+// authMiddleware verifies the auth token on the request matches the
+// one defined in the environment
+func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	// authToken is the token that must be used on all requests
+	authToken := getEnv("AUTH_TOKEN", "")
+
+	// Return the Handlerfunc that asserts the auth token
+	return func(c echo.Context) error {
+		if authToken != "" {
+			if c.Request().Header.Get("X-Auth-Token") == authToken {
+				return next(c)
+			}
+			return echo.ErrUnauthorized
+		}
+		return next(c)
+	}
 }
 
 // RetrievePTR attempts to retrieve the PTR record for the IP
