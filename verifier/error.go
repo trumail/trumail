@@ -107,6 +107,7 @@ func parseSMTPError(err error) *LookupError {
 				"banned",
 				"blacklisted",
 				"blocked",
+				"block list",
 				"denied") {
 				return newLookupError(ErrBlocked, errStr)
 			}
