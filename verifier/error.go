@@ -29,8 +29,8 @@ const (
 
 // LookupError is an error
 type LookupError struct {
-	Message string `json:"message" json:"message"`
-	Details string `json:"details" json:"details"`
+	Message string `json:"message" xml:"message"`
+	Details string `json:"details" xml:"details"`
 }
 
 // newLookupError creates a new LookupError reference and
