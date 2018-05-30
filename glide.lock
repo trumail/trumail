@@ -1,5 +1,5 @@
 hash: 1bc3cfac2a130e4eed07855929a267d06767328e388d08db0c99c25d07990e15
-updated: 2018-05-11T23:20:49.047153-07:00
+updated: 2018-05-30T11:18:38.756074-07:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
@@ -19,24 +19,24 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/patrickmn/go-cache
-  version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
+  version: 9f6ff22cfff829561052f5886ec80a2ac148b4eb
 - name: github.com/sdwolfe32/httpclient
-  version: 3375782190afaf865512eea9d1c0dfe7299b5e1a
+  version: 47d70b5f268419fb480eb9c033f426c6eebc089d
 - name: github.com/valyala/bytebufferpool
   version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
 - name: github.com/valyala/fasttemplate
   version: dcecefd839c4193db0d35b88ec65b4c12d360ab0
 - name: golang.org/x/crypto
-  version: 2d027ae1dddd4694d54f7a8b6cbe78dca8720226
+  version: ab813273cd59e1333f7ae7bff5d027d4aadf528c
   subpackages:
   - acme
   - acme/autocert
 - name: golang.org/x/net
-  version: 2491c5de3490fced2f6cff376127c667efeed857
+  version: 75944861c7512f64725d687546cfbc757626151f
   subpackages:
   - idna
 - name: golang.org/x/sys
-  version: d0faeb539838e250bd0a9db4182d48d4a1915181
+  version: c11f84a56e43e20a78cee75a7c034031ecf57d1f
   subpackages:
   - unix
 - name: golang.org/x/text

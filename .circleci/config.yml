@@ -5,7 +5,7 @@ jobs:
     environment:
       - DOCKER_TAG: sdwolfe32/trumail
     docker:
-      - image: circleci/golang:1.10.1
+      - image: circleci/golang:1.10.2
     steps:
       - checkout
       - run:

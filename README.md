@@ -1,5 +1,4 @@
 # Trumail
-## DEPRECATION NOTICE: The old lookup endpoint https://trumail.io/{format}/{email} is now https://api.trumail.io/v1/{format}/{email}
 
 [![CircleCI](https://circleci.com/gh/sdwolfe32/trumail.svg?style=svg)](https://circleci.com/gh/sdwolfe32/trumail)
 [![GoDoc](https://godoc.org/github.com/sdwolfe32/trumail/verifier?status.svg)](https://godoc.org/github.com/sdwolfe32/trumail/verifier)
@@ -12,7 +11,7 @@ NOTE: While we do offer a managed, enterprise level service to paying customers,
 
 Using the API is very simple. All that's needed to validate an address is to send a `GET` request using the below URL with one of our three supported formats (json/jsonp(with "callback" (all lowercase) queryparam)/xml).
 ```
-https://api.trumail.io/v1/{format}/{email}
+https://api.trumail.io/v2/lookups/{format}?email={email}&token={token}
 ```
 
 ## Using the library
@@ -60,8 +59,6 @@ RCPT TO: test-email@example.com // Set the recipient and receive a (200, 500, et
 QUIT                            // Cancel the transaction, we have all the info we need
 ```
 As you can see we first form a tcp connection with the mail server on port 25. We then identify ourselves as example.com and set a reply-to email of admin@example.com (both these are configured via the SOURCE_ADDR environment variable). The last, and obviously most important step in this process is the RCPT command. This is where, based on the response from the mail server, we are able to conclude the deliverability of a given email address. A 200 implies a valid inbox and anything else implies either an error with our connection to the mail server, or a problem with the address requested.
-
-The first 3 command steps above process happen [here](https://github.com/sdwolfe32/trumail/blob/master/verifier/deliverabler.go#L53-L73). Deliverability is checked [here](https://github.com/sdwolfe32/trumail/blob/master/verifier/deliverabler.go#L86). Transaction is cancelled (QUIT) and the connection is closed [here](https://github.com/sdwolfe32/trumail/blob/master/verifier/deliverabler.go#L111-L112).
 
 The BSD 3-clause License
 ========================
