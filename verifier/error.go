@@ -76,6 +76,7 @@ func ParseSMTPError(err error) *LookupError {
 			"invalid address",
 			"recipient invalid",
 			"recipient rejected",
+			"address rejected",
 			"no mailbox") {
 			return nil
 		}
