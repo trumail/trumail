@@ -27,20 +27,26 @@ type Lookup struct {
 func LookupHandler(v *verifier.Verifier) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Perform the unlimited verification
-		lookup, err := v.Verify(c.Param("email"))
+		lookup, err := Verify(v, c.Param("email"))
 		if err != nil {
 			return FormatEncoder(c, http.StatusInternalServerError, err)
 		}
-		return FormatEncoder(c, http.StatusOK, &Lookup{
-			Address:     lookup.Address.Address,
-			Username:    lookup.Username,
-			Domain:      lookup.Domain,
-			MD5Hash:     lookup.MD5Hash,
-			ValidFormat: lookup.ValidFormat,
-			Deliverable: lookup.Deliverable,
-			FullInbox:   lookup.FullInbox,
-			HostExists:  lookup.HostExists,
-			CatchAll:    lookup.CatchAll,
-		})
+		return FormatEncoder(c, http.StatusOK, lookup)
 	}
+}
+
+// Verify performs the lookup and packages it into an api.Lookup
+func Verify(v *verifier.Verifier, email string) (*Lookup, error) {
+	lookup, err := v.Verify(email)
+	return &Lookup{
+		Address:     lookup.Address.Address,
+		Username:    lookup.Username,
+		Domain:      lookup.Domain,
+		MD5Hash:     lookup.MD5Hash,
+		ValidFormat: lookup.ValidFormat,
+		Deliverable: lookup.Deliverable,
+		FullInbox:   lookup.FullInbox,
+		HostExists:  lookup.HostExists,
+		CatchAll:    lookup.CatchAll,
+	}, err
 }
