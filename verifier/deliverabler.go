@@ -20,14 +20,8 @@ type Deliverabler struct {
 
 // NewDeliverabler generates a new Deliverabler reference
 func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error) {
-	// Convert any internationalized domain names to ascii
-	asciiDomain, err := idna.ToASCII(domain)
-	if err != nil {
-		asciiDomain = domain
-	}
-
 	// Dial any SMTP server that will accept a connection
-	client, err := dialSMTP(asciiDomain)
+	client, err := mailDialTimeout(domain, time.Minute)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +42,15 @@ func NewDeliverabler(domain, hostname, sourceAddr string) (*Deliverabler, error)
 
 // dialSMTP receives a domain and attempts to dial the mail server having
 // retrieved one or more MX records
-func dialSMTP(domain string) (*smtp.Client, error) {
+func mailDialTimeout(domain string, timeout time.Duration) (*smtp.Client, error) {
+	// Convert any internationalized domain names to ascii
+	asciiDomain, err := idna.ToASCII(domain)
+	if err != nil {
+		asciiDomain = domain
+	}
+
 	// Retrieve all MX records
-	records, err := net.LookupMX(domain)
+	records, err := net.LookupMX(asciiDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +62,7 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 
 	// Create a channel for receiving responses from
 	ch := make(chan interface{}, 1)
+
 	// Done indicates if we're still waiting on dial responses
 	var done bool
 
@@ -69,7 +70,7 @@ func dialSMTP(domain string) (*smtp.Client, error) {
 	for _, record := range records {
 		addr := record.Host + ":25"
 		go func() {
-			c, err := smtpDialTimeout(addr, time.Minute)
+			c, err := smtpDialTimeout(addr, timeout)
 			if err != nil {
 				if !done {
 					ch <- err

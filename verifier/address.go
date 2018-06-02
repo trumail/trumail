@@ -10,12 +10,7 @@ import (
 )
 
 // Address stores all information about an email Address
-type Address struct {
-	Address  string `json:"address" xml:"address"`
-	Username string `json:"username" xml:"username"`
-	Domain   string `json:"domain" xml:"domain"`
-	MD5Hash  string `json:"md5Hash" xml:"md5Hash"`
-}
+type Address struct{ Address, Username, Domain, MD5Hash string }
 
 // ParseAddress attempts to parse an email address and return it in the form
 // of an Address struct pointer - domain case insensitive

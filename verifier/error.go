@@ -44,9 +44,9 @@ func (e *LookupError) Error() string {
 	return fmt.Sprintf("%s : %s", e.Message, e.Details)
 }
 
-// parseSMTPError receives an MX Servers response message
+// ParseSMTPError receives an MX Servers response message
 // and generates the cooresponding MX error
-func parseSMTPError(err error) *LookupError {
+func ParseSMTPError(err error) *LookupError {
 	if err == nil {
 		return nil
 	}
@@ -54,13 +54,13 @@ func parseSMTPError(err error) *LookupError {
 
 	// Verify the length of the error before reading nil indexes
 	if len(errStr) < 3 {
-		return parseBasicErr(err)
+		return ParseBasicErr(err)
 	}
 
 	// Strips out the status code string and converts to an integer for parsing
 	status, convErr := strconv.Atoi(string([]rune(errStr)[0:3]))
 	if convErr != nil {
-		return parseBasicErr(err)
+		return ParseBasicErr(err)
 	}
 
 	// If the status code is above 400 there was an error and we should return it
@@ -121,15 +121,15 @@ func parseSMTPError(err error) *LookupError {
 		case 554:
 			return NewLookupError(ErrNotAllowed, errStr)
 		default:
-			return parseBasicErr(err)
+			return ParseBasicErr(err)
 		}
 	}
 	return nil
 }
 
-// parseBasicErr parses a basic MX record response and returns
+// ParseBasicErr parses a basic MX record response and returns
 // a more understandable LookupError
-func parseBasicErr(err error) *LookupError {
+func ParseBasicErr(err error) *LookupError {
 	if err == nil {
 		return nil
 	}

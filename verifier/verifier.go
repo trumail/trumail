@@ -1,28 +1,19 @@
 package verifier
 
-import (
-	"encoding/xml"
-)
-
 // Verifier contains all dependencies needed to perform educated email
 // verification lookups
 type Verifier struct{ hostname, sourceAddr string }
+
+// Lookup contains all output data for an email verification Lookup
+type Lookup struct {
+	Address
+	ValidFormat, Deliverable, FullInbox, HostExists, CatchAll bool
+}
 
 // NewVerifier generates a new Verifier using the passed hostname and
 // source email address
 func NewVerifier(hostname, sourceAddr string) *Verifier {
 	return &Verifier{hostname, sourceAddr}
-}
-
-// Lookup contains all output data for an email verification Lookup
-type Lookup struct {
-	XMLName xml.Name `json:"-" xml:"lookup"`
-	Address
-	ValidFormat bool `json:"validFormat" xml:"validFormat"`
-	Deliverable bool `json:"deliverable" xml:"deliverable"`
-	FullInbox   bool `json:"fullInbox" xml:"fullInbox"`
-	HostExists  bool `json:"hostExists" xml:"hostExists"`
-	CatchAll    bool `json:"catchAll" xml:"catchAll"`
 }
 
 // Verify performs an email verification on the passed email address
@@ -43,15 +34,15 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// Attempt to form an SMTP Connection
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
-		le := parseSMTPError(err)
+		le := ParseSMTPError(err)
 		if le != nil {
 			if le.Message == ErrNoSuchHost {
 				l.HostExists = false
 				return &l, nil
 			}
-			return nil, le
+			return &l, le
 		}
-		return nil, parseBasicErr(err)
+		return &l, ParseBasicErr(err)
 	}
 	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
@@ -62,13 +53,13 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 		l.Deliverable = true
 	} else {
 		if err := del.IsDeliverable(address.Address, 3); err != nil {
-			le := parseSMTPError(err)
+			le := ParseSMTPError(err)
 			if le != nil {
 				if le.Message == ErrFullInbox {
 					l.FullInbox = true // and FullInbox and move on
 					return &l, nil
 				}
-				return nil, le // Return if it's a legit error
+				return &l, le // Return if it's a legit error
 			}
 		} else {
 			l.Deliverable = true
