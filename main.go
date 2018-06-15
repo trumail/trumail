@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/entrik/httpclient"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/sdwolfe32/httpclient"
 	"github.com/sdwolfe32/trumail/api"
 	"github.com/sdwolfe32/trumail/verifier"
 )
@@ -31,10 +31,27 @@ func main() {
 
 	// Bind the API endpoints to router
 	e.GET("/v1/:format/:email", api.LookupHandler(v), authMiddleware)
-	e.GET("/v1/health", api.HealthHandler(retrievePTR()), authMiddleware)
+	e.GET("/v1/health", api.HealthHandler(), authMiddleware)
 
 	// Listen and Serve
 	e.Logger.Fatal(e.Start(":" + port))
+}
+
+// RetrievePTR attempts to retrieve the PTR record for the IP
+// address retrieved via an API call on api.ipify.org
+func retrievePTR() string {
+	// Request the IP from ipify
+	ip, err := httpclient.GetString("https://api.ipify.org/")
+	if err != nil {
+		log.Fatal("Failed to retrieve public IP")
+	}
+
+	// Retrieve the PTR record for our IP and return without a trailing dot
+	names, err := net.LookupAddr(ip)
+	if err != nil {
+		return ip
+	}
+	return strings.TrimSuffix(names[0], ".")
 }
 
 // authMiddleware verifies the auth token on the request matches the
@@ -53,23 +70,6 @@ func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		return next(c)
 	}
-}
-
-// RetrievePTR attempts to retrieve the PTR record for the IP
-// address retrieved via an API call on api.ipify.org
-func retrievePTR() string {
-	// Request the IP from ipify
-	ip, err := httpclient.GetString("https://api.ipify.org/")
-	if err != nil {
-		log.Fatal("Failed to retrieve public IP")
-	}
-
-	// Retrieve the PTR record for our IP and return without a trailing dot
-	names, err := net.LookupAddr(ip)
-	if err != nil {
-		return ip
-	}
-	return strings.TrimSuffix(names[0], ".")
 }
 
 // getEnv retrieves variables from the environment and falls back

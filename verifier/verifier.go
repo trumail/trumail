@@ -18,7 +18,7 @@ func NewVerifier(hostname, sourceAddr string) *Verifier {
 
 // Verify performs an email verification on the passed email address
 func (v *Verifier) Verify(email string) (*Lookup, error) {
-	// Initialize the lookup
+	// Allocate memory for the Lookup
 	var l Lookup
 	l.Address.Address = email
 
@@ -34,32 +34,25 @@ func (v *Verifier) Verify(email string) (*Lookup, error) {
 	// Attempt to form an SMTP Connection
 	del, err := NewDeliverabler(address.Domain, v.hostname, v.sourceAddr)
 	if err != nil {
-		le := ParseSMTPError(err)
-		if le != nil {
-			if le.Message == ErrNoSuchHost {
-				l.HostExists = false
-				return &l, nil
-			}
-			return &l, le
-		}
-		return &l, ParseBasicErr(err)
+		return &l, ParseSMTPError(err)
 	}
-	l.HostExists = true
 	defer del.Close() // Defer close the SMTP connection
 
-	// Retrieve the catchall status or check deliverability
+	// Host exists if we've successfully formed a connection
+	l.HostExists = true
+
+	// Retrieve the catchall status and check deliverability
 	if del.HasCatchAll(3) {
 		l.CatchAll = true
 		l.Deliverable = true
 	} else {
 		if err := del.IsDeliverable(address.Address, 3); err != nil {
-			le := ParseSMTPError(err)
-			if le != nil {
+			if le := ParseSMTPError(err); le != nil {
 				if le.Message == ErrFullInbox {
-					l.FullInbox = true // and FullInbox and move on
+					l.FullInbox = true // set FullInbox and return no error
 					return &l, nil
 				}
-				return &l, le // Return if it's a legit error
+				return &l, le // Return if there's a true error
 			}
 		} else {
 			l.Deliverable = true

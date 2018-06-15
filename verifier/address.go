@@ -3,11 +3,16 @@ package verifier
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/mail"
 	"net/url"
 	"strings"
 )
+
+// ErrNoAtChar is thrown when no '@' character is found on an email
+// address
+var ErrNoAtChar = errors.New("No '@' character found on email address")
 
 // Address stores all information about an email Address
 type Address struct{ Address, Username, Domain, MD5Hash string }
@@ -23,6 +28,9 @@ func ParseAddress(email string) (*Address, error) {
 
 	// Find the last occurrence of an @ sign
 	index := strings.LastIndex(a.Address, "@")
+	if index == -1 {
+		return nil, ErrNoAtChar
+	}
 
 	// Parse the username, domain and case unique address
 	username := a.Address[:index]
